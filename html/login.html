@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - Hệ thống Trung Gian Giao Dịch</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #007BFF;
+            padding: 20px;
+        }
+        
+        .auth-card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .auth-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        
+        .auth-logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007BFF;
+            margin-bottom: 8px;
+        }
+        
+        .auth-subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 24px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            padding: 4px;
+        }
+        
+        .auth-tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .auth-tab.active {
+            background: white;
+            color: #007BFF;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .auth-form {
+            display: none;
+        }
+        
+        .auth-form.active {
+            display: block;
+        }
+        
+        .role-selector {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .role-option {
+            flex: 1;
+            padding: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .role-option.selected {
+            border-color: #007BFF;
+            background: #e6f3ff;
+        }
+        
+        .role-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .role-title {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        
+        .role-desc {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .forgot-password {
+            text-align: center;
+            margin-top: 16px;
+        }
+        
+        .forgot-password a {
+            color: #007BFF;
+            text-decoration: none;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-logo">SafeTrade</div>
+                <div class="auth-subtitle">Hệ thống trung gian giao dịch an toàn</div>
+            </div>
+            
+            <div class="auth-tabs">
+                <div class="auth-tab active" onclick="switchTab('login')">Đăng nhập</div>
+                <div class="auth-tab" onclick="switchTab('register')">Đăng ký</div>
+            </div>
+            
+            <!-- Login Form -->
+            <form id="loginForm" class="auth-form active">
+                <div class="form-group">
+                    <label class="form-label">Số điện thoại</label>
+                    <input type="tel" class="form-control" id="loginPhone" placeholder="Nhập số điện thoại" required>
+                    <div class="error-message" id="loginPhoneError"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Mật khẩu</label>
+                    <input type="password" class="form-control" id="loginPassword" placeholder="Nhập mật khẩu" required>
+                    <div class="error-message" id="loginPasswordError"></div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-full">Đăng nhập</button>
+                
+                <div class="forgot-password">
+                    <a href="#" onclick="showForgotPassword()">Quên mật khẩu?</a>
+                </div>
+            </form>
+            
+            <!-- Register Form -->
+            <form id="registerForm" class="auth-form">
+                <div class="role-selector">
+                    <div class="role-option" onclick="selectRole('buyer')" data-role="buyer">
+                        <div class="role-icon">🛒</div>
+                        <div class="role-title">Người mua</div>
+                        <div class="role-desc">Tạo giao dịch, thanh toán</div>
+                    </div>
+                    <div class="role-option" onclick="selectRole('seller')" data-role="seller">
+                        <div class="role-icon">🏪</div>
+                        <div class="role-title">Người bán</div>
+                        <div class="role-desc">Nhận đơn, giao hàng</div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Họ và tên</label>
+                    <input type="text" class="form-control" id="registerName" placeholder="Nhập họ và tên" required>
+                    <div class="error-message" id="registerNameError"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Số điện thoại</label>
+                    <input type="tel" class="form-control" id="registerPhone" placeholder="Nhập số điện thoại" required>
+                    <div class="error-message" id="registerPhoneError"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Mật khẩu</label>
+                    <input type="password" class="form-control" id="registerPassword" placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)" required>
+                    <div class="error-message" id="registerPasswordError"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Xác nhận mật khẩu</label>
+                    <input type="password" class="form-control" id="registerConfirmPassword" placeholder="Nhập lại mật khẩu" required>
+                    <div class="error-message" id="registerConfirmPasswordError"></div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-full">Đăng ký</button>
+            </form>
+        </div>
+    </div>
+    
+    <script src="js/app.js"></script>
+    <script>
+        let selectedRole = 'buyer';
+        
+        function switchTab(tab) {
+            // Update tab buttons
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update forms
+            document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+            document.getElementById(tab + 'Form').classList.add('active');
+        }
+        
+        function selectRole(role) {
+            selectedRole = role;
+            document.querySelectorAll('.role-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            document.querySelector(`[data-role="${role}"]`).classList.add('selected');
+        }
+        
+        function showForgotPassword() {
+            alert('Tính năng quên mật khẩu sẽ được cập nhật sau. Vui lòng liên hệ admin để được hỗ trợ.');
+        }
+        
+        // Login form handler
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const phone = document.getElementById('loginPhone').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            // Clear previous errors
+            document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+            document.querySelectorAll('.form-control').forEach(el => el.classList.remove('error'));
+            
+            // Validate
+            let hasError = false;
+            
+            if (!phone) {
+                showFieldError('loginPhone', 'Vui lòng nhập số điện thoại');
+                hasError = true;
+            } else if (!App.Validation.validatePhone(phone)) {
+                showFieldError('loginPhone', 'Số điện thoại không hợp lệ');
+                hasError = true;
+            }
+            
+            if (!password) {
+                showFieldError('loginPassword', 'Vui lòng nhập mật khẩu');
+                hasError = true;
+            }
+            
+            if (hasError) return;
+            
+            // Mock login - In real app, this would call API
+            const mockUsers = [
+                { id: 'buyer1', phone: '0901234567', password: '123456', name: 'Nguyễn Văn A', role: 'buyer' },
+                { id: 'seller1', phone: '0907654321', password: '123456', name: 'Trần Thị B', role: 'seller' }
+            ];
+            
+            const user = mockUsers.find(u => u.phone === phone && u.password === password);
+            
+            if (user) {
+                App.User.login(user);
+            } else {
+                showFieldError('loginPassword', 'Số điện thoại hoặc mật khẩu không đúng');
+            }
+        });
+        
+        // Register form handler
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('registerName').value;
+            const phone = document.getElementById('registerPhone').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('registerConfirmPassword').value;
+            
+            // Clear previous errors
+            document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+            document.querySelectorAll('.form-control').forEach(el => el.classList.remove('error'));
+            
+            // Validate
+            let hasError = false;
+            
+            if (!name) {
+                showFieldError('registerName', 'Vui lòng nhập họ và tên');
+                hasError = true;
+            }
+            
+            if (!phone) {
+                showFieldError('registerPhone', 'Vui lòng nhập số điện thoại');
+                hasError = true;
+            } else if (!App.Validation.validatePhone(phone)) {
+                showFieldError('registerPhone', 'Số điện thoại không hợp lệ');
+                hasError = true;
+            }
+            
+            if (!password) {
+                showFieldError('registerPassword', 'Vui lòng nhập mật khẩu');
+                hasError = true;
+            } else if (password.length < 6) {
+                showFieldError('registerPassword', 'Mật khẩu phải có ít nhất 6 ký tự');
+                hasError = true;
+            }
+            
+            if (!confirmPassword) {
+                showFieldError('registerConfirmPassword', 'Vui lòng xác nhận mật khẩu');
+                hasError = true;
+            } else if (password !== confirmPassword) {
+                showFieldError('registerConfirmPassword', 'Mật khẩu xác nhận không khớp');
+                hasError = true;
+            }
+            
+            if (hasError) return;
+            
+            // Mock registration - In real app, this would call API
+            const newUser = {
+                id: selectedRole + Date.now(),
+                name,
+                phone,
+                password,
+                role: selectedRole
+            };
+            
+            alert('Đăng ký thành công! Vui lòng đăng nhập.');
+            switchTab('login');
+            document.getElementById('loginPhone').value = phone;
+        });
+        
+        function showFieldError(fieldId, message) {
+            const field = document.getElementById(fieldId);
+            const errorElement = document.getElementById(fieldId + 'Error');
+            
+            field.classList.add('error');
+            errorElement.textContent = message;
+        }
+        
+        // Initialize
+        selectRole('buyer');
+    </script>
+</body>
+</html>

@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Phòng Giao Dịch - SafeTrade</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .room-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            margin-bottom: 16px;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+        
+        .room-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .room-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .room-title {
+            font-weight: 600;
+            font-size: 18px;
+            color: #333;
+        }
+        
+        .room-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .room-status.active {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .room-body {
+            padding: 20px;
+        }
+        
+        .room-description {
+            color: #666;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+        
+        .room-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .room-stat {
+            text-align: center;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .room-stat-number {
+            font-size: 20px;
+            font-weight: bold;
+            color: #007BFF;
+        }
+        
+        .room-stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+        
+        .room-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .category-filter {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+        
+        .category-btn {
+            padding: 8px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 20px;
+            background: white;
+            color: #666;
+            font-size: 14px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+        }
+        
+        .category-btn.active {
+            border-color: #007BFF;
+            background: #007BFF;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">Phòng Giao Dịch</div>
+                <div class="user-info">
+                    <div class="user-details">
+                        <div class="user-name">Đang tải...</div>
+                        <div class="user-role" style="font-size: 12px; opacity: 0.8;">Người bán</div>
+                    </div>
+                    <div class="user-avatar">🏪</div>
+                    <button class="btn btn-secondary" onclick="App.User.logout()" style="margin-left: 12px; padding: 8px 16px; font-size: 14px;">Đăng xuất</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container">
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="seller-dashboard.html" class="nav-link">Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a href="rooms.html" class="nav-link active">Phòng giao dịch</a>
+                </li>
+                <li class="nav-item">
+                    <a href="create-room.html" class="nav-link">Tạo phòng</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" onclick="showMyRooms()">Phòng của tôi</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container" style="padding-bottom: 80px;">
+        <!-- Quick Actions -->
+        <div class="card mb-24">
+            <div class="card-header">Thao tác nhanh</div>
+            <div class="card-body">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                    <a href="create-room.html" class="btn btn-primary">
+                        ➕ Tạo phòng mới
+                    </a>
+                    <button class="btn btn-secondary" onclick="showMyRooms()">
+                        🏠 Phòng của tôi
+                    </button>
+                    <button class="btn btn-secondary" onclick="refreshRooms()">
+                        🔄 Làm mới
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Filter -->
+        <div class="category-filter">
+            <button class="category-btn active" onclick="filterByCategory('all')">Tất cả</button>
+            <button class="category-btn" onclick="filterByCategory('electronics')">📱 Điện tử</button>
+            <button class="category-btn" onclick="filterByCategory('fashion')">👕 Thời trang</button>
+            <button class="category-btn" onclick="filterByCategory('home')">🏠 Gia dụng</button>
+            <button class="category-btn" onclick="filterByCategory('books')">📚 Sách</button>
+            <button class="category-btn" onclick="filterByCategory('sports')">⚽ Thể thao</button>
+            <button class="category-btn" onclick="filterByCategory('other')">📦 Khác</button>
+        </div>
+
+        <!-- Rooms List -->
+        <div id="roomsList">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Đang tải danh sách phòng...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="seller-dashboard.html" class="bottom-nav-item">
+            <span class="bottom-nav-icon">🏠</span>
+            <span>Dashboard</span>
+        </a>
+        <a href="rooms.html" class="bottom-nav-item active">
+            <span class="bottom-nav-icon">🏢</span>
+            <span>Phòng GD</span>
+        </a>
+        <a href="create-room.html" class="bottom-nav-item">
+            <span class="bottom-nav-icon">➕</span>
+            <span>Tạo phòng</span>
+        </a>
+        <a href="#" class="bottom-nav-item" onclick="showProfile()">
+            <span class="bottom-nav-icon">👤</span>
+            <span>Tài khoản</span>
+        </a>
+    </nav>
+
+    <script src="js/app.js"></script>
+    <script>
+        let currentFilter = 'all';
+        let allRooms = [];
+
+        function loadRooms() {
+            allRooms = App.Room.getAll();
+            renderRooms(allRooms);
+        }
+
+        function renderRooms(rooms) {
+            const container = document.getElementById('roomsList');
+            
+            if (rooms.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px; color: #666;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">🏢</div>
+                        <p>Chưa có phòng giao dịch nào</p>
+                        <a href="create-room.html" class="btn btn-primary mt-16">Tạo phòng đầu tiên</a>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = rooms.map(room => `
+                <div class="room-card" onclick="viewRoom('${room.id}')">
+                    <div class="room-header">
+                        <div class="room-title">${room.name}</div>
+                        <div class="room-status ${room.status}">
+                            ${room.status === 'active' ? 'Hoạt động' : 'Tạm dừng'}
+                        </div>
+                    </div>
+                    <div class="room-body">
+                        <div class="room-description">${room.description}</div>
+                        
+                        <div class="room-stats">
+                            <div class="room-stat">
+                                <div class="room-stat-number">${room.memberCount}</div>
+                                <div class="room-stat-label">Thành viên</div>
+                            </div>
+                            <div class="room-stat">
+                                <div class="room-stat-number">${room.transactionCount}</div>
+                                <div class="room-stat-label">Giao dịch</div>
+                            </div>
+                            <div class="room-stat">
+                                <div class="room-stat-number">${getCategoryIcon(room.category)}</div>
+                                <div class="room-stat-label">${getCategoryName(room.category)}</div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px;">
+                            <div style="font-size: 12px; color: #999;">
+                                Chủ phòng: ${room.ownerName}
+                            </div>
+                            <div style="font-size: 12px; color: #999;">
+                                ${App.Utils.formatDate(room.updatedAt)}
+                            </div>
+                        </div>
+                        
+                        <div class="room-actions">
+                            <button class="btn btn-primary" onclick="event.stopPropagation(); joinRoom('${room.id}')" style="flex: 1; padding: 8px; font-size: 14px;">
+                                Tham gia
+                            </button>
+                            ${room.ownerId === App.User.getCurrentUser()?.id ? `
+                                <button class="btn btn-secondary" onclick="event.stopPropagation(); editRoom('${room.id}')" style="padding: 8px 12px; font-size: 14px;">
+                                    ⚙️
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = html;
+        }
+
+        function getCategoryIcon(category) {
+            const icons = {
+                'electronics': '📱',
+                'fashion': '👕',
+                'home': '🏠',
+                'books': '📚',
+                'sports': '⚽',
+                'other': '📦'
+            };
+            return icons[category] || '📦';
+        }
+
+        function getCategoryName(category) {
+            const names = {
+                'electronics': 'Điện tử',
+                'fashion': 'Thời trang',
+                'home': 'Gia dụng',
+                'books': 'Sách',
+                'sports': 'Thể thao',
+                'other': 'Khác'
+            };
+            return names[category] || 'Khác';
+        }
+
+        function filterByCategory(category) {
+            currentFilter = category;
+            
+            // Update active button
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Filter rooms
+            let filteredRooms = allRooms;
+            if (category !== 'all') {
+                filteredRooms = allRooms.filter(room => room.category === category);
+            }
+            
+            renderRooms(filteredRooms);
+        }
+
+        function showMyRooms() {
+            const user = App.User.getCurrentUser();
+            const myRooms = allRooms.filter(room => room.ownerId === user.id);
+            renderRooms(myRooms);
+            
+            // Update filter buttons
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+        }
+
+        function viewRoom(roomId) {
+            // In real app, this would navigate to room detail page
+            const room = App.Room.getById(roomId);
+            alert(`Xem chi tiết phòng: ${room.name}\n\nTính năng này sẽ được phát triển trong phiên bản tiếp theo.`);
+        }
+
+        function joinRoom(roomId) {
+            const room = App.Room.getById(roomId);
+            if (confirm(`Tham gia phòng "${room.name}"?`)) {
+                // Update member count
+                App.Room.update(roomId, { memberCount: room.memberCount + 1 });
+                alert('Đã tham gia phòng thành công!');
+                loadRooms();
+            }
+        }
+
+        function editRoom(roomId) {
+            window.location.href = `create-room.html?edit=${roomId}`;
+        }
+
+        function refreshRooms() {
+            App.Utils.showLoading(document.getElementById('roomsList'));
+            setTimeout(() => {
+                loadRooms();
+            }, 1000);
+        }
+
+        function showProfile() {
+            const user = App.User.getCurrentUser();
+            alert(`Thông tin tài khoản:\nTên: ${user.name}\nSĐT: ${user.phone}\nVai trò: Người bán`);
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = App.User.getCurrentUser();
+            if (user) {
+                document.querySelector('.user-name').textContent = user.name;
+                loadRooms();
+            }
+        });
+    </script>
+</body>
+</html>

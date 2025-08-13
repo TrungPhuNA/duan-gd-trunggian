@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo Phòng Giao Dịch - SafeTrade</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+        
+        .category-option {
+            padding: 16px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .category-option.selected {
+            border-color: #007BFF;
+            background: #e6f3ff;
+        }
+        
+        .category-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .category-name {
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .room-preview {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 16px;
+        }
+        
+        .preview-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #333;
+        }
+        
+        .preview-card {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .preview-room-name {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .preview-status {
+            padding: 4px 8px;
+            background: #d4edda;
+            color: #155724;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        
+        .preview-description {
+            color: #666;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        
+        .preview-stats {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <button onclick="history.back()" class="btn btn-secondary" style="padding: 8px 12px;">←</button>
+                    <div class="logo" id="pageTitle">Tạo Phòng Giao Dịch</div>
+                </div>
+                <div class="user-info">
+                    <div class="user-name">Đang tải...</div>
+                    <div class="user-avatar">🏪</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container" style="padding: 24px 16px 80px;">
+        <form id="createRoomForm">
+            <!-- Room Information -->
+            <div class="card mb-24">
+                <div class="card-header">
+                    <span>🏢 Thông tin phòng giao dịch</span>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label class="form-label">Tên phòng *</label>
+                        <input type="text" class="form-control" id="roomName" placeholder="Nhập tên phòng giao dịch" required>
+                        <div class="error-message" id="roomNameError"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Mô tả phòng *</label>
+                        <textarea class="form-control" id="roomDescription" rows="4" placeholder="Mô tả chi tiết về phòng giao dịch, loại sản phẩm, quy định..." required></textarea>
+                        <div class="error-message" id="roomDescriptionError"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category Selection -->
+            <div class="card mb-24">
+                <div class="card-header">
+                    <span>📂 Danh mục sản phẩm</span>
+                </div>
+                <div class="card-body">
+                    <label class="form-label">Chọn danh mục chính *</label>
+                    <div class="category-grid">
+                        <div class="category-option" onclick="selectCategory('electronics')" data-category="electronics">
+                            <div class="category-icon">📱</div>
+                            <div class="category-name">Điện tử</div>
+                        </div>
+                        <div class="category-option" onclick="selectCategory('fashion')" data-category="fashion">
+                            <div class="category-icon">👕</div>
+                            <div class="category-name">Thời trang</div>
+                        </div>
+                        <div class="category-option" onclick="selectCategory('home')" data-category="home">
+                            <div class="category-icon">🏠</div>
+                            <div class="category-name">Gia dụng</div>
+                        </div>
+                        <div class="category-option" onclick="selectCategory('books')" data-category="books">
+                            <div class="category-icon">📚</div>
+                            <div class="category-name">Sách</div>
+                        </div>
+                        <div class="category-option" onclick="selectCategory('sports')" data-category="sports">
+                            <div class="category-icon">⚽</div>
+                            <div class="category-name">Thể thao</div>
+                        </div>
+                        <div class="category-option" onclick="selectCategory('other')" data-category="other">
+                            <div class="category-icon">📦</div>
+                            <div class="category-name">Khác</div>
+                        </div>
+                    </div>
+                    <div class="error-message" id="categoryError"></div>
+                </div>
+            </div>
+
+            <!-- Room Rules -->
+            <div class="card mb-24">
+                <div class="card-header">
+                    <span>📋 Quy định phòng (tùy chọn)</span>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label class="form-label">Quy định và điều khoản</label>
+                        <textarea class="form-control" id="roomRules" rows="4" placeholder="Nhập các quy định, điều khoản cho phòng giao dịch (tùy chọn)"></textarea>
+                    </div>
+                    
+                    <div style="background: #e3f2fd; padding: 16px; border-radius: 8px; border-left: 4px solid #2196f3;">
+                        <h4 style="margin: 0 0 8px 0; color: #1976d2; font-size: 14px;">💡 Gợi ý quy định:</h4>
+                        <ul style="margin: 0; padding-left: 16px; font-size: 13px; color: #1976d2;">
+                            <li>Chỉ giao dịch sản phẩm thuộc danh mục đã chọn</li>
+                            <li>Cung cấp hình ảnh thật của sản phẩm</li>
+                            <li>Mô tả chính xác tình trạng sản phẩm</li>
+                            <li>Giao hàng trong vòng 3-5 ngày</li>
+                            <li>Hỗ trợ đổi trả trong 7 ngày</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview -->
+            <div class="card mb-24" id="roomPreview" style="display: none;">
+                <div class="card-header">
+                    <span>👀 Xem trước</span>
+                </div>
+                <div class="card-body">
+                    <div class="room-preview">
+                        <div class="preview-title">Phòng giao dịch sẽ hiển thị như sau:</div>
+                        <div class="preview-card">
+                            <div class="preview-header">
+                                <div class="preview-room-name" id="previewName">Tên phòng</div>
+                                <div class="preview-status">Hoạt động</div>
+                            </div>
+                            <div class="preview-description" id="previewDescription">Mô tả phòng</div>
+                            <div class="preview-stats">
+                                <span>👥 1 thành viên</span>
+                                <span>📦 0 giao dịch</span>
+                                <span id="previewCategory">📂 Danh mục</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="card">
+                <div class="card-body">
+                    <button type="submit" class="btn btn-primary btn-full" id="submitBtn">
+                        🏢 Tạo Phòng Giao Dịch
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-full mt-16" onclick="history.back()">
+                        Hủy bỏ
+                    </button>
+                </div>
+            </div>
+        </form>
+    </main>
+
+    <script src="js/app.js"></script>
+    <script>
+        let selectedCategory = '';
+        let isEditMode = false;
+        let editingRoomId = null;
+
+        function selectCategory(category) {
+            selectedCategory = category;
+            
+            // Update UI
+            document.querySelectorAll('.category-option').forEach(el => {
+                el.classList.remove('selected');
+            });
+            document.querySelector(`[data-category="${category}"]`).classList.add('selected');
+            
+            updatePreview();
+        }
+
+        function updatePreview() {
+            const name = document.getElementById('roomName').value.trim();
+            const description = document.getElementById('roomDescription').value.trim();
+            
+            if (name || description || selectedCategory) {
+                document.getElementById('roomPreview').style.display = 'block';
+                
+                document.getElementById('previewName').textContent = name || 'Tên phòng';
+                document.getElementById('previewDescription').textContent = description || 'Mô tả phòng';
+                
+                if (selectedCategory) {
+                    const categoryNames = {
+                        'electronics': '📱 Điện tử',
+                        'fashion': '👕 Thời trang',
+                        'home': '🏠 Gia dụng',
+                        'books': '📚 Sách',
+                        'sports': '⚽ Thể thao',
+                        'other': '📦 Khác'
+                    };
+                    document.getElementById('previewCategory').textContent = categoryNames[selectedCategory] || '📂 Danh mục';
+                }
+            } else {
+                document.getElementById('roomPreview').style.display = 'none';
+            }
+        }
+
+        function loadRoomForEdit() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const roomId = urlParams.get('edit');
+            
+            if (roomId) {
+                isEditMode = true;
+                editingRoomId = roomId;
+                
+                const room = App.Room.getById(roomId);
+                if (room) {
+                    document.getElementById('pageTitle').textContent = 'Chỉnh Sửa Phòng';
+                    document.getElementById('submitBtn').innerHTML = '💾 Cập Nhật Phòng';
+                    
+                    document.getElementById('roomName').value = room.name;
+                    document.getElementById('roomDescription').value = room.description;
+                    document.getElementById('roomRules').value = room.rules || '';
+                    
+                    selectCategory(room.category);
+                    updatePreview();
+                }
+            }
+        }
+
+        // Form validation and submission
+        document.getElementById('createRoomForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form data
+            const formData = {
+                name: document.getElementById('roomName').value.trim(),
+                description: document.getElementById('roomDescription').value.trim(),
+                category: selectedCategory,
+                rules: document.getElementById('roomRules').value.trim()
+            };
+            
+            // Clear previous errors
+            document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+            document.querySelectorAll('.form-control').forEach(el => el.classList.remove('error'));
+            
+            // Validate form
+            const errors = validateForm(formData);
+            
+            if (Object.keys(errors).length > 0) {
+                // Show errors
+                Object.keys(errors).forEach(field => {
+                    showFieldError(field, errors[field]);
+                });
+                return;
+            }
+            
+            // Create or update room
+            if (isEditMode) {
+                updateRoom(formData);
+            } else {
+                createRoom(formData);
+            }
+        });
+
+        function validateForm(data) {
+            const errors = {};
+            
+            if (!data.name) {
+                errors.roomName = 'Vui lòng nhập tên phòng';
+            } else if (data.name.length < 5) {
+                errors.roomName = 'Tên phòng phải có ít nhất 5 ký tự';
+            }
+            
+            if (!data.description) {
+                errors.roomDescription = 'Vui lòng nhập mô tả phòng';
+            } else if (data.description.length < 20) {
+                errors.roomDescription = 'Mô tả phải có ít nhất 20 ký tự';
+            }
+            
+            if (!data.category) {
+                errors.category = 'Vui lòng chọn danh mục';
+            }
+            
+            return errors;
+        }
+
+        function showFieldError(fieldId, message) {
+            const field = document.getElementById(fieldId);
+            const errorElement = document.getElementById(fieldId + 'Error');
+            
+            if (field && errorElement) {
+                field.classList.add('error');
+                errorElement.textContent = message;
+            }
+        }
+
+        function createRoom(formData) {
+            const submitBtn = document.getElementById('submitBtn');
+            const originalText = submitBtn.innerHTML;
+            
+            // Show loading
+            submitBtn.innerHTML = '⏳ Đang tạo phòng...';
+            submitBtn.disabled = true;
+            
+            // Get current user
+            const user = App.User.getCurrentUser();
+            
+            // Prepare room data
+            const roomData = {
+                ...formData,
+                ownerId: user.id,
+                ownerName: user.name
+            };
+            
+            // Simulate API call
+            setTimeout(() => {
+                try {
+                    const room = App.Room.create(roomData);
+                    
+                    // Show success message
+                    alert(`Phòng giao dịch đã được tạo thành công!\n\nMã phòng: ${room.id}\nTên phòng: ${room.name}\n\nBạn có thể bắt đầu mời thành viên tham gia.`);
+                    
+                    // Redirect to rooms page
+                    window.location.href = 'rooms.html';
+                    
+                } catch (error) {
+                    alert('Có lỗi xảy ra khi tạo phòng. Vui lòng thử lại.');
+                    
+                    // Restore button
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                }
+            }, 2000);
+        }
+
+        function updateRoom(formData) {
+            const submitBtn = document.getElementById('submitBtn');
+            const originalText = submitBtn.innerHTML;
+            
+            // Show loading
+            submitBtn.innerHTML = '⏳ Đang cập nhật...';
+            submitBtn.disabled = true;
+            
+            // Simulate API call
+            setTimeout(() => {
+                try {
+                    App.Room.update(editingRoomId, formData);
+                    
+                    alert('Phòng giao dịch đã được cập nhật thành công!');
+                    window.location.href = 'rooms.html';
+                    
+                } catch (error) {
+                    alert('Có lỗi xảy ra khi cập nhật phòng. Vui lòng thử lại.');
+                    
+                    // Restore button
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                }
+            }, 1500);
+        }
+
+        // Event listeners
+        document.getElementById('roomName').addEventListener('input', updatePreview);
+        document.getElementById('roomDescription').addEventListener('input', updatePreview);
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = App.User.getCurrentUser();
+            if (user) {
+                document.querySelector('.user-name').textContent = user.name;
+                loadRoomForEdit();
+            }
+        });
+    </script>
+</body>
+</html>

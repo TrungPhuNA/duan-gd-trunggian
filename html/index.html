@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeTrade - Hệ thống Trung Gian Giao Dịch An Toàn</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .hero {
+            background: #007BFF;
+            color: white;
+            padding: 60px 0;
+            text-align: center;
+        }
+        
+        .hero-title {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 16px;
+        }
+        
+        .hero-subtitle {
+            font-size: 18px;
+            opacity: 0.9;
+            margin-bottom: 32px;
+            line-height: 1.6;
+        }
+        
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .hero-btn {
+            padding: 16px 32px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 12px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            min-width: 160px;
+        }
+        
+        .hero-btn-primary {
+            background: white;
+            color: #007BFF;
+        }
+        
+        .hero-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255,255,255,0.3);
+        }
+        
+        .hero-btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
+        }
+        
+        .hero-btn-secondary:hover {
+            background: white;
+            color: #007BFF;
+        }
+        
+        .features {
+            padding: 60px 0;
+            background: #f8f9fa;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 32px;
+            margin-top: 40px;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-4px);
+        }
+        
+        .feature-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        
+        .feature-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #333;
+        }
+        
+        .feature-desc {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .how-it-works {
+            padding: 60px 0;
+        }
+        
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 32px;
+            margin-top: 40px;
+        }
+        
+        .step {
+            text-align: center;
+            position: relative;
+        }
+        
+        .step-number {
+            width: 60px;
+            height: 60px;
+            background: #007BFF;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0 auto 20px;
+        }
+        
+        .step-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #333;
+        }
+        
+        .step-desc {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .cta {
+            background: #007BFF;
+            color: white;
+            padding: 60px 0;
+            text-align: center;
+        }
+        
+        .cta-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 16px;
+        }
+        
+        .cta-desc {
+            font-size: 18px;
+            opacity: 0.9;
+            margin-bottom: 32px;
+        }
+        
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 28px;
+            }
+            
+            .hero-subtitle {
+                font-size: 16px;
+            }
+            
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .hero-btn {
+                width: 100%;
+                max-width: 280px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1 class="hero-title">SafeTrade</h1>
+            <p class="hero-subtitle">
+                Hệ thống trung gian giao dịch an toàn<br>
+                Bảo vệ người mua và người bán trong mọi giao dịch
+            </p>
+            <div class="hero-buttons">
+                <a href="demo-setup.html" class="hero-btn hero-btn-primary">🚀 Xem Demo</a>
+                <a href="login.html" class="hero-btn hero-btn-secondary">Đăng nhập</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="container">
+            <h2 style="text-align: center; font-size: 32px; margin-bottom: 16px;">Tại sao chọn SafeTrade?</h2>
+            <p style="text-align: center; color: #666; font-size: 18px;">
+                Chúng tôi cung cấp giải pháp giao dịch an toàn và đáng tin cậy
+            </p>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🛡️</div>
+                    <h3 class="feature-title">An toàn tuyệt đối</h3>
+                    <p class="feature-desc">
+                        Tiền được giữ an toàn trong ví trung gian cho đến khi giao dịch hoàn tất. 
+                        Không lo bị lừa đảo hay mất tiền.
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3 class="feature-title">Nhanh chóng</h3>
+                    <p class="feature-desc">
+                        Quy trình đơn giản, xử lý nhanh chóng. 
+                        Chỉ cần vài bước là có thể tạo giao dịch an toàn.
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">👥</div>
+                    <h3 class="feature-title">Hỗ trợ 24/7</h3>
+                    <p class="feature-desc">
+                        Đội ngũ admin hỗ trợ giải quyết tranh chấp 24/7. 
+                        Luôn có người bảo vệ quyền lợi của bạn.
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">💰</div>
+                    <h3 class="feature-title">Phí thấp</h3>
+                    <p class="feature-desc">
+                        Chỉ 2% phí dịch vụ, minh bạch và hợp lý. 
+                        Không có phí ẩn hay chi phí phát sinh.
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3 class="feature-title">Dễ sử dụng</h3>
+                    <p class="feature-desc">
+                        Giao diện thân thiện, tối ưu cho mobile. 
+                        Ai cũng có thể sử dụng dễ dàng.
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3 class="feature-title">Minh bạch</h3>
+                    <p class="feature-desc">
+                        Theo dõi trạng thái giao dịch real-time. 
+                        Mọi thông tin đều rõ ràng và minh bạch.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How it works -->
+    <section class="how-it-works">
+        <div class="container">
+            <h2 style="text-align: center; font-size: 32px; margin-bottom: 16px;">Cách thức hoạt động</h2>
+            <p style="text-align: center; color: #666; font-size: 18px;">
+                Quy trình đơn giản, an toàn trong 6 bước
+            </p>
+            
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3 class="step-title">Tạo giao dịch</h3>
+                    <p class="step-desc">
+                        Người mua tạo yêu cầu giao dịch với thông tin người bán và sản phẩm
+                    </p>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3 class="step-title">Xác nhận</h3>
+                    <p class="step-desc">
+                        Người bán nhận thông báo và xác nhận thông tin giao dịch
+                    </p>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3 class="step-title">Thanh toán</h3>
+                    <p class="step-desc">
+                        Người mua chuyển tiền vào ví trung gian an toàn của SafeTrade
+                    </p>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h3 class="step-title">Giao hàng</h3>
+                    <p class="step-desc">
+                        Người bán gửi hàng cho người mua theo thỏa thuận
+                    </p>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">5</div>
+                    <h3 class="step-title">Xác nhận</h3>
+                    <p class="step-desc">
+                        Người mua kiểm tra và xác nhận đã nhận hàng hài lòng
+                    </p>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">6</div>
+                    <h3 class="step-title">Hoàn tất</h3>
+                    <p class="step-desc">
+                        Hệ thống giải ngân cho người bán, giao dịch hoàn tất
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+            <h2 class="cta-title">Bắt đầu giao dịch an toàn ngay hôm nay</h2>
+            <p class="cta-desc">
+                Tham gia cùng hàng nghìn người dùng đã tin tưởng SafeTrade
+            </p>
+            <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+                <a href="demo-setup.html" class="btn btn-primary" style="padding: 16px 32px; font-size: 18px; background: white; color: #007BFF;">
+                    🚀 Xem Demo Ngay
+                </a>
+                <a href="login.html" class="btn btn-secondary" style="padding: 16px 32px; font-size: 18px; background: rgba(255,255,255,0.2); color: white; border: 2px solid white;">
+                    📝 Đăng ký tài khoản
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer style="background: #333; color: white; padding: 40px 0; text-align: center;">
+        <div class="container">
+            <div style="font-size: 24px; font-weight: bold; margin-bottom: 16px;">SafeTrade</div>
+            <p style="margin-bottom: 20px; opacity: 0.8;">
+                Hệ thống trung gian giao dịch an toàn - Bảo vệ mọi giao dịch của bạn
+            </p>
+            <div style="border-top: 1px solid #555; padding-top: 20px; margin-top: 20px;">
+                <p style="margin: 0; opacity: 0.6; font-size: 14px;">
+                    © 2024 SafeTrade. Tất cả quyền được bảo lưu.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Auto redirect if user is already logged in
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check if user is already logged in
+            const userData = localStorage.getItem('safe_trade_user');
+            if (userData) {
+                const user = JSON.parse(userData);
+                if (user.role === 'buyer') {
+                    window.location.href = 'buyer-dashboard.html';
+                } else if (user.role === 'seller') {
+                    window.location.href = 'seller-dashboard.html';
+                }
+            }
+        });
+    </script>
+</body>
+</html>

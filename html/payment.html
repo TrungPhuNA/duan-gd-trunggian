@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh Toán - SafeTrade</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .payment-method {
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .payment-method.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        
+        .payment-method-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        
+        .payment-method-icon {
+            font-size: 24px;
+        }
+        
+        .payment-method-title {
+            font-weight: 600;
+            flex: 1;
+        }
+        
+        .payment-method-radio {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .qr-container {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            margin: 16px 0;
+        }
+        
+        .qr-code {
+            width: 200px;
+            height: 200px;
+            background: #f0f0f0;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .bank-info {
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 16px 0;
+        }
+        
+        .bank-info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .bank-info-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .copy-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        .countdown {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        
+        .countdown-timer {
+            font-size: 24px;
+            font-weight: bold;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <button onclick="history.back()" class="btn btn-secondary" style="padding: 8px 12px;">←</button>
+                    <div class="logo">Thanh Toán</div>
+                </div>
+                <div class="user-info">
+                    <div class="user-name">Đang tải...</div>
+                    <div class="user-avatar">👤</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container" style="padding: 24px 16px 80px;">
+        <div id="paymentContent">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Đang tải thông tin thanh toán...</p>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/app.js"></script>
+    <script>
+        let currentTransaction = null;
+        let selectedPaymentMethod = 'bank_transfer';
+        let countdownTimer = null;
+        let timeLeft = 15 * 60; // 15 minutes
+
+        function loadPayment() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const transactionId = urlParams.get('id');
+            
+            if (!transactionId) {
+                showError('Không tìm thấy mã giao dịch');
+                return;
+            }
+
+            currentTransaction = App.Transaction.getById(transactionId);
+            
+            if (!currentTransaction) {
+                showError('Không tìm thấy giao dịch');
+                return;
+            }
+
+            if (currentTransaction.status !== 'PENDING_PAYMENT') {
+                showError('Giao dịch này không thể thanh toán');
+                return;
+            }
+
+            renderPayment();
+            startCountdown();
+        }
+
+        function renderPayment() {
+            const container = document.getElementById('paymentContent');
+            
+            container.innerHTML = `
+                <!-- Transaction Summary -->
+                <div class="card mb-24">
+                    <div class="card-header">📋 Thông tin giao dịch</div>
+                    <div class="card-body">
+                        <div style="text-align: center; margin-bottom: 16px;">
+                            <h3 style="margin-bottom: 8px;">#${currentTransaction.id}</h3>
+                            <div style="font-size: 28px; font-weight: bold; color: #28a745;">
+                                ${App.Utils.formatCurrency(currentTransaction.amount)}
+                            </div>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 12px; border-radius: 8px;">
+                            <p style="margin: 4px 0;"><strong>Sản phẩm:</strong> ${currentTransaction.productName}</p>
+                            <p style="margin: 4px 0;"><strong>Người bán:</strong> ${currentTransaction.sellerName}</p>
+                            <p style="margin: 4px 0;"><strong>SĐT:</strong> ${currentTransaction.sellerPhone}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Countdown -->
+                <div class="countdown">
+                    <div style="margin-bottom: 8px;">⏰ Thời gian thanh toán còn lại:</div>
+                    <div class="countdown-timer" id="countdownDisplay">15:00</div>
+                    <div style="font-size: 12px; margin-top: 8px; color: #856404;">
+                        Vui lòng hoàn tất thanh toán trong thời gian quy định
+                    </div>
+                </div>
+
+                <!-- Payment Methods -->
+                <div class="card mb-24">
+                    <div class="card-header">💳 Chọn phương thức thanh toán</div>
+                    <div class="card-body">
+                        <div class="payment-method selected" onclick="selectPaymentMethod('bank_transfer')">
+                            <div class="payment-method-header">
+                                <div class="payment-method-icon">🏦</div>
+                                <div class="payment-method-title">Chuyển khoản ngân hàng</div>
+                                <input type="radio" name="payment_method" value="bank_transfer" checked class="payment-method-radio">
+                            </div>
+                            <div style="font-size: 14px; color: #666;">
+                                Chuyển khoản trực tiếp qua ngân hàng
+                            </div>
+                        </div>
+                        
+                        <div class="payment-method" onclick="selectPaymentMethod('qr_code')">
+                            <div class="payment-method-header">
+                                <div class="payment-method-icon">📱</div>
+                                <div class="payment-method-title">Quét mã QR</div>
+                                <input type="radio" name="payment_method" value="qr_code" class="payment-method-radio">
+                            </div>
+                            <div style="font-size: 14px; color: #666;">
+                                Quét mã QR bằng app ngân hàng
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Details -->
+                <div class="card mb-24" id="paymentDetails">
+                    ${renderPaymentDetails()}
+                </div>
+
+                <!-- Instructions -->
+                <div class="card mb-24">
+                    <div class="card-header">📝 Hướng dẫn thanh toán</div>
+                    <div class="card-body">
+                        <ol style="margin: 0; padding-left: 20px;">
+                            <li style="margin-bottom: 8px;">Thực hiện chuyển khoản với đúng số tiền và nội dung</li>
+                            <li style="margin-bottom: 8px;">Chụp ảnh màn hình xác nhận chuyển khoản</li>
+                            <li style="margin-bottom: 8px;">Nhấn "Đã thanh toán" và tải lên ảnh xác nhận</li>
+                            <li style="margin-bottom: 8px;">Chờ hệ thống xác minh (1-5 phút)</li>
+                        </ol>
+                        
+                        <div style="background: #e3f2fd; padding: 12px; border-radius: 8px; margin-top: 16px; border-left: 4px solid #2196f3;">
+                            <strong>⚠️ Lưu ý quan trọng:</strong>
+                            <ul style="margin: 8px 0 0 16px; font-size: 14px;">
+                                <li>Chuyển đúng số tiền, sai số tiền sẽ bị từ chối</li>
+                                <li>Ghi đúng nội dung chuyển khoản</li>
+                                <li>Không chuyển khoản ngoài thời gian quy định</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="card">
+                    <div class="card-body">
+                        <button class="btn btn-success btn-full mb-16" onclick="confirmPayment()">
+                            ✅ Đã thanh toán
+                        </button>
+                        <button class="btn btn-secondary btn-full" onclick="cancelPayment()">
+                            ❌ Hủy thanh toán
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderPaymentDetails() {
+            if (selectedPaymentMethod === 'qr_code') {
+                return `
+                    <div class="card-header">📱 Quét mã QR để thanh toán</div>
+                    <div class="card-body">
+                        <div class="qr-container">
+                            <div class="qr-code">
+                                QR Code sẽ được<br>tạo tự động
+                            </div>
+                            <p style="font-size: 14px; color: #666; margin: 0;">
+                                Quét mã QR bằng app ngân hàng để thanh toán
+                            </p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                return `
+                    <div class="card-header">🏦 Thông tin chuyển khoản</div>
+                    <div class="card-body">
+                        <div class="bank-info">
+                            <div class="bank-info-row">
+                                <span><strong>Ngân hàng:</strong></span>
+                                <span>
+                                    Vietcombank
+                                    <button class="copy-btn" onclick="copyToClipboard('Vietcombank')">Copy</button>
+                                </span>
+                            </div>
+                            <div class="bank-info-row">
+                                <span><strong>Số tài khoản:</strong></span>
+                                <span>
+                                    1234567890
+                                    <button class="copy-btn" onclick="copyToClipboard('1234567890')">Copy</button>
+                                </span>
+                            </div>
+                            <div class="bank-info-row">
+                                <span><strong>Tên tài khoản:</strong></span>
+                                <span>
+                                    SAFETRADE COMPANY
+                                    <button class="copy-btn" onclick="copyToClipboard('SAFETRADE COMPANY')">Copy</button>
+                                </span>
+                            </div>
+                            <div class="bank-info-row">
+                                <span><strong>Số tiền:</strong></span>
+                                <span style="color: #28a745; font-weight: bold;">
+                                    ${App.Utils.formatCurrency(currentTransaction.amount)}
+                                    <button class="copy-btn" onclick="copyToClipboard('${currentTransaction.amount}')">Copy</button>
+                                </span>
+                            </div>
+                            <div class="bank-info-row">
+                                <span><strong>Nội dung:</strong></span>
+                                <span style="color: #dc3545; font-weight: bold;">
+                                    ${currentTransaction.id}
+                                    <button class="copy-btn" onclick="copyToClipboard('${currentTransaction.id}')">Copy</button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function selectPaymentMethod(method) {
+            selectedPaymentMethod = method;
+            
+            // Update UI
+            document.querySelectorAll('.payment-method').forEach(el => {
+                el.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+            
+            // Update radio buttons
+            document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
+                radio.checked = radio.value === method;
+            });
+            
+            // Update payment details
+            document.getElementById('paymentDetails').innerHTML = renderPaymentDetails();
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                // Show temporary success message
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied!';
+                btn.style.background = '#28a745';
+                
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '#667eea';
+                }, 1000);
+            }).catch(() => {
+                alert('Không thể copy. Vui lòng copy thủ công.');
+            });
+        }
+
+        function startCountdown() {
+            countdownTimer = setInterval(() => {
+                timeLeft--;
+                
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                
+                document.getElementById('countdownDisplay').textContent = 
+                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(countdownTimer);
+                    alert('Hết thời gian thanh toán. Giao dịch sẽ bị hủy.');
+                    window.location.href = 'buyer-dashboard.html';
+                }
+            }, 1000);
+        }
+
+        function confirmPayment() {
+            if (confirm('Xác nhận bạn đã chuyển khoản thành công?')) {
+                // In real app, this would upload proof and wait for verification
+                App.Transaction.update(currentTransaction.id, { status: 'PAID' });
+                
+                clearInterval(countdownTimer);
+                alert('Đã xác nhận thanh toán! Hệ thống đang xác minh giao dịch.');
+                window.location.href = `transaction-detail.html?id=${currentTransaction.id}`;
+            }
+        }
+
+        function cancelPayment() {
+            if (confirm('Bạn có chắc muốn hủy thanh toán? Giao dịch sẽ bị hủy.')) {
+                clearInterval(countdownTimer);
+                window.location.href = 'buyer-dashboard.html';
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('paymentContent').innerHTML = `
+                <div style="text-align: center; padding: 40px 20px; color: #dc3545;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">❌</div>
+                    <p>${message}</p>
+                    <button class="btn btn-primary mt-16" onclick="history.back()">Quay lại</button>
+                </div>
+            `;
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = App.User.getCurrentUser();
+            if (user) {
+                document.querySelector('.user-name').textContent = user.name;
+                loadPayment();
+            }
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (countdownTimer) {
+                clearInterval(countdownTimer);
+            }
+        });
+    </script>
+</body>
+</html>

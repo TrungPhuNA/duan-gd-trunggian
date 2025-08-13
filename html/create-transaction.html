@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo Giao Dịch Mới - SafeTrade</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <button onclick="history.back()" class="btn btn-secondary" style="padding: 8px 12px;">←</button>
+                    <div class="logo">Tạo Giao Dịch Mới</div>
+                </div>
+                <div class="user-info">
+                    <div class="user-name">Đang tải...</div>
+                    <div class="user-avatar">👤</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container" style="padding: 24px 16px 80px;">
+        <form id="createTransactionForm">
+            <!-- Seller Information -->
+            <div class="card mb-24">
+                <div class="card-header">
+                    <span>👤 Thông tin người bán</span>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label class="form-label">Tên người bán *</label>
+                        <input type="text" class="form-control" id="sellerName" placeholder="Nhập tên người bán" required>
+                        <div class="error-message" id="sellerNameError"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Số điện thoại người bán *</label>
+                        <input type="tel" class="form-control" id="sellerPhone" placeholder="Nhập số điện thoại" required>
+                        <div class="error-message" id="sellerPhoneError"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Information -->
+            <div class="card mb-24">
+                <div class="card-header">
+                    <span>📦 Thông tin sản phẩm</span>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label class="form-label">Tên sản phẩm *</label>
+                        <input type="text" class="form-control" id="productName" placeholder="Nhập tên sản phẩm" required>
+                        <div class="error-message" id="productNameError"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Mô tả sản phẩm</label>
+                        <textarea class="form-control" id="productDescription" rows="4" placeholder="Mô tả chi tiết về sản phẩm (tình trạng, bảo hành, phụ kiện...)"></textarea>
+                        <div class="error-message" id="productDescriptionError"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Số tiền giao dịch *</label>
+                        <input type="number" class="form-control" id="amount" placeholder="Nhập số tiền (VND)" required min="10000">
+                        <div style="font-size: 12px; color: #666; margin-top: 4px;">
+                            Số tiền tối thiểu: 10,000 VND
+                        </div>
+                        <div class="error-message" id="amountError"></div>
+                    </div>
+                    
+                    <div id="amountDisplay" style="background: #f8f9fa; padding: 12px; border-radius: 8px; margin-top: 8px; display: none;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                            <span>Số tiền giao dịch:</span>
+                            <span id="displayAmount">0 VND</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                            <span>Phí dịch vụ (2%):</span>
+                            <span id="displayFee">0 VND</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-weight: bold; border-top: 1px solid #e0e0e0; padding-top: 4px;">
+                            <span>Người bán nhận được:</span>
+                            <span id="displaySellerAmount">0 VND</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Information -->
+            <div class="card mb-24">
+                <div class="card-header">
+                    <span>📝 Thông tin bổ sung</span>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label class="form-label">Ghi chú</label>
+                        <textarea class="form-control" id="notes" rows="3" placeholder="Ghi chú thêm về giao dịch (tùy chọn)"></textarea>
+                    </div>
+                    
+                    <div style="background: #e3f2fd; padding: 16px; border-radius: 8px; border-left: 4px solid #2196f3;">
+                        <h4 style="margin: 0 0 8px 0; color: #1976d2; font-size: 14px;">ℹ️ Lưu ý quan trọng:</h4>
+                        <ul style="margin: 0; padding-left: 16px; font-size: 13px; color: #1976d2;">
+                            <li>Vui lòng kiểm tra kỹ thông tin trước khi tạo giao dịch</li>
+                            <li>Người bán sẽ nhận được thông báo và cần xác nhận giao dịch</li>
+                            <li>Bạn chỉ thanh toán sau khi người bán xác nhận</li>
+                            <li>Tiền sẽ được giữ an toàn cho đến khi giao dịch hoàn tất</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="card">
+                <div class="card-body">
+                    <button type="submit" class="btn btn-primary btn-full" id="submitBtn">
+                        🚀 Tạo Giao Dịch
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-full mt-16" onclick="history.back()">
+                        Hủy bỏ
+                    </button>
+                </div>
+            </div>
+        </form>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="buyer-dashboard.html" class="bottom-nav-item">
+            <span class="bottom-nav-icon">🏠</span>
+            <span>Trang chủ</span>
+        </a>
+        <a href="create-transaction.html" class="bottom-nav-item active">
+            <span class="bottom-nav-icon">➕</span>
+            <span>Tạo mới</span>
+        </a>
+        <a href="#" class="bottom-nav-item">
+            <span class="bottom-nav-icon">⏳</span>
+            <span>Đang chờ</span>
+        </a>
+        <a href="#" class="bottom-nav-item">
+            <span class="bottom-nav-icon">👤</span>
+            <span>Tài khoản</span>
+        </a>
+    </nav>
+
+    <script src="js/app.js"></script>
+    <script>
+        // Calculate and display amount breakdown
+        function updateAmountDisplay() {
+            const amount = parseFloat(document.getElementById('amount').value) || 0;
+            const fee = amount * 0.02; // 2% fee
+            const sellerAmount = amount - fee;
+            
+            if (amount > 0) {
+                document.getElementById('amountDisplay').style.display = 'block';
+                document.getElementById('displayAmount').textContent = App.Utils.formatCurrency(amount);
+                document.getElementById('displayFee').textContent = App.Utils.formatCurrency(fee);
+                document.getElementById('displaySellerAmount').textContent = App.Utils.formatCurrency(sellerAmount);
+            } else {
+                document.getElementById('amountDisplay').style.display = 'none';
+            }
+        }
+
+        // Form validation and submission
+        document.getElementById('createTransactionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form data
+            const formData = {
+                sellerName: document.getElementById('sellerName').value.trim(),
+                sellerPhone: document.getElementById('sellerPhone').value.trim(),
+                productName: document.getElementById('productName').value.trim(),
+                productDescription: document.getElementById('productDescription').value.trim(),
+                amount: parseFloat(document.getElementById('amount').value) || 0,
+                notes: document.getElementById('notes').value.trim()
+            };
+            
+            // Clear previous errors
+            document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+            document.querySelectorAll('.form-control').forEach(el => el.classList.remove('error'));
+            
+            // Validate form
+            const errors = validateForm(formData);
+            
+            if (Object.keys(errors).length > 0) {
+                // Show errors
+                Object.keys(errors).forEach(field => {
+                    showFieldError(field, errors[field]);
+                });
+                return;
+            }
+            
+            // Create transaction
+            createTransaction(formData);
+        });
+
+        function validateForm(data) {
+            const errors = {};
+            
+            // Seller name
+            if (!data.sellerName) {
+                errors.sellerName = 'Vui lòng nhập tên người bán';
+            }
+            
+            // Seller phone
+            if (!data.sellerPhone) {
+                errors.sellerPhone = 'Vui lòng nhập số điện thoại người bán';
+            } else {
+                const phoneError = App.Validation.validatePhone(data.sellerPhone);
+                if (phoneError) {
+                    errors.sellerPhone = phoneError;
+                }
+            }
+            
+            // Product name
+            if (!data.productName) {
+                errors.productName = 'Vui lòng nhập tên sản phẩm';
+            }
+            
+            // Amount
+            if (!data.amount || data.amount <= 0) {
+                errors.amount = 'Vui lòng nhập số tiền hợp lệ';
+            } else if (data.amount < 10000) {
+                errors.amount = 'Số tiền tối thiểu là 10,000 VND';
+            }
+            
+            return errors;
+        }
+
+        function showFieldError(fieldId, message) {
+            const field = document.getElementById(fieldId);
+            const errorElement = document.getElementById(fieldId + 'Error');
+            
+            if (field && errorElement) {
+                field.classList.add('error');
+                errorElement.textContent = message;
+            }
+        }
+
+        function createTransaction(formData) {
+            const submitBtn = document.getElementById('submitBtn');
+            const originalText = submitBtn.innerHTML;
+            
+            // Show loading
+            submitBtn.innerHTML = '⏳ Đang tạo giao dịch...';
+            submitBtn.disabled = true;
+            
+            // Get current user
+            const user = App.User.getCurrentUser();
+            
+            // Prepare transaction data
+            const transactionData = {
+                buyerId: user.id,
+                buyerName: user.name,
+                buyerPhone: user.phone,
+                sellerId: 'seller_' + Date.now(), // In real app, this would be looked up
+                sellerName: formData.sellerName,
+                sellerPhone: formData.sellerPhone,
+                productName: formData.productName,
+                productDescription: formData.productDescription,
+                amount: formData.amount,
+                notes: formData.notes
+            };
+            
+            // Simulate API call
+            setTimeout(() => {
+                try {
+                    const transaction = App.Transaction.create(transactionData);
+                    
+                    // Show success message
+                    alert(`Giao dịch đã được tạo thành công!\n\nMã giao dịch: ${transaction.id}\nTrạng thái: Chờ xác nhận từ người bán\n\nBạn sẽ nhận được thông báo khi người bán xác nhận.`);
+                    
+                    // Redirect to transaction detail
+                    window.location.href = `transaction-detail.html?id=${transaction.id}`;
+                    
+                } catch (error) {
+                    alert('Có lỗi xảy ra khi tạo giao dịch. Vui lòng thử lại.');
+                    
+                    // Restore button
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                }
+            }, 2000);
+        }
+
+        // Event listeners
+        document.getElementById('amount').addEventListener('input', updateAmountDisplay);
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = App.User.getCurrentUser();
+            if (user) {
+                document.querySelector('.user-name').textContent = user.name;
+            }
+        });
+    </script>
+</body>
+</html>

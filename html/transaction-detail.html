@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi Tiết Giao Dịch - SafeTrade</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <button onclick="history.back()" class="btn btn-secondary" style="padding: 8px 12px;">←</button>
+                    <div class="logo">Chi Tiết Giao Dịch</div>
+                </div>
+                <div class="user-info">
+                    <div class="user-name">Đang tải...</div>
+                    <div class="user-avatar">👤</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container" style="padding: 24px 16px 80px;">
+        <div id="transactionContent">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Đang tải thông tin giao dịch...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="buyer-dashboard.html" class="bottom-nav-item">
+            <span class="bottom-nav-icon">🏠</span>
+            <span>Trang chủ</span>
+        </a>
+        <a href="create-transaction.html" class="bottom-nav-item">
+            <span class="bottom-nav-icon">➕</span>
+            <span>Tạo mới</span>
+        </a>
+        <a href="#" class="bottom-nav-item">
+            <span class="bottom-nav-icon">⏳</span>
+            <span>Đang chờ</span>
+        </a>
+        <a href="#" class="bottom-nav-item">
+            <span class="bottom-nav-icon">👤</span>
+            <span>Tài khoản</span>
+        </a>
+    </nav>
+
+    <script src="js/app.js"></script>
+    <script>
+        let currentTransaction = null;
+        let currentUser = null;
+
+        function loadTransaction() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const transactionId = urlParams.get('id');
+            
+            if (!transactionId) {
+                showError('Không tìm thấy mã giao dịch');
+                return;
+            }
+
+            currentUser = App.User.getCurrentUser();
+            currentTransaction = App.Transaction.getById(transactionId);
+            
+            if (!currentTransaction) {
+                showError('Không tìm thấy giao dịch');
+                return;
+            }
+
+            renderTransaction();
+        }
+
+        function renderTransaction() {
+            const container = document.getElementById('transactionContent');
+            const isUserBuyer = currentUser.id === currentTransaction.buyerId;
+            const userRole = isUserBuyer ? 'buyer' : 'seller';
+            
+            container.innerHTML = `
+                <!-- Transaction Status -->
+                <div class="card mb-24">
+                    <div class="card-body text-center">
+                        <div style="font-size: 48px; margin-bottom: 16px;">
+                            ${getStatusIcon(currentTransaction.status)}
+                        </div>
+                        <h2 style="margin-bottom: 8px;">#${currentTransaction.id}</h2>
+                        <span class="status-badge ${getStatusClass(currentTransaction.status)}" style="font-size: 14px;">
+                            ${getStatusText(currentTransaction.status)}
+                        </span>
+                        <div style="margin-top: 16px; font-size: 24px; font-weight: bold; color: #28a745;">
+                            ${App.Utils.formatCurrency(currentTransaction.amount)}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Information -->
+                <div class="card mb-24">
+                    <div class="card-header">📦 Thông tin sản phẩm</div>
+                    <div class="card-body">
+                        <h3 style="margin-bottom: 12px;">${currentTransaction.productName}</h3>
+                        ${currentTransaction.productDescription ? `
+                            <p style="color: #666; margin-bottom: 16px;">${currentTransaction.productDescription}</p>
+                        ` : ''}
+                        <div style="background: #f8f9fa; padding: 12px; border-radius: 8px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <span>Số tiền giao dịch:</span>
+                                <span>${App.Utils.formatCurrency(currentTransaction.amount)}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <span>Phí dịch vụ (2%):</span>
+                                <span>${App.Utils.formatCurrency(currentTransaction.amount * 0.02)}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-weight: bold; border-top: 1px solid #e0e0e0; padding-top: 4px;">
+                                <span>Người bán nhận được:</span>
+                                <span>${App.Utils.formatCurrency(currentTransaction.amount * 0.98)}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Parties Information -->
+                <div class="card mb-24">
+                    <div class="card-header">👥 Thông tin các bên</div>
+                    <div class="card-body">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            <div>
+                                <h4 style="margin-bottom: 8px; color: #667eea;">🛒 Người mua</h4>
+                                <p style="margin: 4px 0;"><strong>${currentTransaction.buyerName || 'N/A'}</strong></p>
+                                <p style="margin: 4px 0; color: #666;">${currentTransaction.buyerPhone || 'N/A'}</p>
+                            </div>
+                            <div>
+                                <h4 style="margin-bottom: 8px; color: #28a745;">🏪 Người bán</h4>
+                                <p style="margin: 4px 0;"><strong>${currentTransaction.sellerName}</strong></p>
+                                <p style="margin: 4px 0; color: #666;">${currentTransaction.sellerPhone}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline -->
+                <div class="card mb-24">
+                    <div class="card-header">📅 Lịch sử giao dịch</div>
+                    <div class="card-body">
+                        ${renderTimeline()}
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="card mb-24">
+                    <div class="card-header">⚡ Thao tác</div>
+                    <div class="card-body">
+                        ${renderActions(userRole)}
+                    </div>
+                </div>
+
+                ${currentTransaction.notes ? `
+                    <div class="card mb-24">
+                        <div class="card-header">📝 Ghi chú</div>
+                        <div class="card-body">
+                            <p>${currentTransaction.notes}</p>
+                        </div>
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        function renderTimeline() {
+            const timeline = [
+                { status: 'CREATED', text: 'Giao dịch được tạo', date: currentTransaction.createdAt, completed: true },
+                { status: 'PENDING_SELLER', text: 'Chờ người bán xác nhận', date: null, completed: true },
+                { status: 'PENDING_PAYMENT', text: 'Chờ thanh toán', date: null, completed: false },
+                { status: 'PAID', text: 'Đã thanh toán', date: null, completed: false },
+                { status: 'SHIPPING', text: 'Đang giao hàng', date: null, completed: false },
+                { status: 'COMPLETED', text: 'Hoàn tất', date: null, completed: false }
+            ];
+
+            const currentStatusIndex = timeline.findIndex(t => t.status === currentTransaction.status);
+            
+            return timeline.map((item, index) => {
+                const isCompleted = index <= currentStatusIndex;
+                const isCurrent = index === currentStatusIndex;
+                
+                return `
+                    <div style="display: flex; align-items: center; margin-bottom: 12px; ${index === timeline.length - 1 ? 'margin-bottom: 0;' : ''}">
+                        <div style="width: 20px; height: 20px; border-radius: 50%; background: ${isCompleted ? '#28a745' : '#e0e0e0'}; margin-right: 12px; display: flex; align-items: center; justify-content: center;">
+                            ${isCompleted ? '✓' : ''}
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: ${isCurrent ? 'bold' : 'normal'}; color: ${isCurrent ? '#667eea' : '#333'};">
+                                ${item.text}
+                            </div>
+                            ${item.date ? `<div style="font-size: 12px; color: #666;">${App.Utils.formatDate(item.date)}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderActions(userRole) {
+            const status = currentTransaction.status;
+            let actions = [];
+
+            if (userRole === 'buyer') {
+                switch (status) {
+                    case 'PENDING_SELLER':
+                        actions.push(`
+                            <div style="background: #fff3cd; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                                <p style="margin: 0; color: #856404;">⏳ Đang chờ người bán xác nhận giao dịch</p>
+                            </div>
+                        `);
+                        break;
+                    case 'PENDING_PAYMENT':
+                        actions.push(`
+                            <button class="btn btn-primary btn-full mb-16" onclick="proceedToPayment()">
+                                💳 Thanh toán ngay
+                            </button>
+                        `);
+                        break;
+                    case 'PAID':
+                        actions.push(`
+                            <div style="background: #d4edda; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                                <p style="margin: 0; color: #155724;">✅ Đã thanh toán. Đang chờ người bán gửi hàng</p>
+                            </div>
+                        `);
+                        break;
+                    case 'SHIPPING':
+                        actions.push(`
+                            <button class="btn btn-success btn-full mb-16" onclick="confirmReceived()">
+                                ✅ Xác nhận đã nhận hàng
+                            </button>
+                        `);
+                        break;
+                    case 'COMPLETED':
+                        actions.push(`
+                            <div style="background: #d1ecf1; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                                <p style="margin: 0; color: #0c5460;">🎉 Giao dịch đã hoàn tất thành công!</p>
+                            </div>
+                        `);
+                        break;
+                }
+
+                // Add dispute option for certain statuses
+                if (['PAID', 'SHIPPING'].includes(status)) {
+                    actions.push(`
+                        <button class="btn btn-warning btn-full" onclick="createDispute()">
+                            ⚠️ Tạo khiếu nại
+                        </button>
+                    `);
+                }
+            } else {
+                // Seller actions
+                switch (status) {
+                    case 'PENDING_SELLER':
+                        actions.push(`
+                            <button class="btn btn-success btn-full mb-16" onclick="confirmTransaction()">
+                                ✅ Xác nhận giao dịch
+                            </button>
+                            <button class="btn btn-danger btn-full" onclick="rejectTransaction()">
+                                ❌ Từ chối giao dịch
+                            </button>
+                        `);
+                        break;
+                    case 'PENDING_PAYMENT':
+                        actions.push(`
+                            <div style="background: #fff3cd; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                                <p style="margin: 0; color: #856404;">⏳ Đang chờ người mua thanh toán</p>
+                            </div>
+                        `);
+                        break;
+                    case 'PAID':
+                        actions.push(`
+                            <button class="btn btn-primary btn-full" onclick="markAsShipping()">
+                                🚚 Xác nhận đã gửi hàng
+                            </button>
+                        `);
+                        break;
+                    case 'SHIPPING':
+                        actions.push(`
+                            <div style="background: #e2e3e5; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                                <p style="margin: 0; color: #383d41;">📦 Đang chờ người mua xác nhận nhận hàng</p>
+                            </div>
+                        `);
+                        break;
+                    case 'COMPLETED':
+                        actions.push(`
+                            <div style="background: #d1ecf1; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                                <p style="margin: 0; color: #0c5460;">🎉 Giao dịch đã hoàn tất. Tiền đã được chuyển!</p>
+                            </div>
+                        `);
+                        break;
+                }
+            }
+
+            return actions.join('');
+        }
+
+        function getStatusIcon(status) {
+            const icons = {
+                'PENDING_SELLER': '⏳',
+                'PENDING_PAYMENT': '💳',
+                'PAID': '✅',
+                'SHIPPING': '🚚',
+                'COMPLETED': '🎉',
+                'DISPUTED': '⚠️'
+            };
+            return icons[status] || '📋';
+        }
+
+        function getStatusClass(status) {
+            const statusClasses = {
+                'PENDING_SELLER': 'status-pending',
+                'PENDING_PAYMENT': 'status-pending',
+                'PAID': 'status-paid',
+                'SHIPPING': 'status-shipping',
+                'COMPLETED': 'status-completed',
+                'DISPUTED': 'status-disputed'
+            };
+            return statusClasses[status] || 'status-pending';
+        }
+
+        function getStatusText(status) {
+            return App.CONFIG.TRANSACTION_STATUSES[status] || status;
+        }
+
+        function showError(message) {
+            document.getElementById('transactionContent').innerHTML = `
+                <div style="text-align: center; padding: 40px 20px; color: #dc3545;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">❌</div>
+                    <p>${message}</p>
+                    <button class="btn btn-primary mt-16" onclick="history.back()">Quay lại</button>
+                </div>
+            `;
+        }
+
+        // Action handlers
+        function proceedToPayment() {
+            window.location.href = `payment.html?id=${currentTransaction.id}`;
+        }
+
+        function confirmReceived() {
+            if (confirm('Xác nhận bạn đã nhận được hàng và hài lòng với sản phẩm?')) {
+                updateTransactionStatus('COMPLETED');
+                alert('Cảm ơn bạn! Giao dịch đã hoàn tất thành công.');
+            }
+        }
+
+        function createDispute() {
+            window.location.href = `dispute.html?id=${currentTransaction.id}`;
+        }
+
+        function confirmTransaction() {
+            if (confirm('Xác nhận thông tin giao dịch chính xác và bạn sẵn sàng giao hàng?')) {
+                updateTransactionStatus('PENDING_PAYMENT');
+                alert('Đã xác nhận giao dịch. Người mua sẽ nhận được thông báo để thanh toán.');
+            }
+        }
+
+        function rejectTransaction() {
+            const reason = prompt('Vui lòng nhập lý do từ chối:');
+            if (reason) {
+                alert('Đã từ chối giao dịch. Người mua sẽ nhận được thông báo.');
+                history.back();
+            }
+        }
+
+        function markAsShipping() {
+            if (confirm('Xác nhận bạn đã gửi hàng cho người mua?')) {
+                updateTransactionStatus('SHIPPING');
+                alert('Đã cập nhật trạng thái giao hàng. Người mua sẽ nhận được thông báo.');
+            }
+        }
+
+        function updateTransactionStatus(newStatus) {
+            App.Transaction.update(currentTransaction.id, { status: newStatus });
+            currentTransaction.status = newStatus;
+            renderTransaction();
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = App.User.getCurrentUser();
+            if (user) {
+                document.querySelector('.user-name').textContent = user.name;
+                loadTransaction();
+            }
+        });
+    </script>
+</body>
+</html>

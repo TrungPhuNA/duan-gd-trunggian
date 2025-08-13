@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo Khiếu Nại - SafeTrade</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .evidence-upload {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 12px;
+        }
+        
+        .evidence-upload:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        
+        .evidence-upload.dragover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        
+        .evidence-list {
+            margin-top: 16px;
+        }
+        
+        .evidence-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .evidence-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .evidence-icon {
+            font-size: 24px;
+        }
+        
+        .evidence-details {
+            flex: 1;
+        }
+        
+        .evidence-name {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        
+        .evidence-size {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .remove-evidence {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        .dispute-types {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .dispute-type {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .dispute-type.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        
+        .dispute-type-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        
+        .dispute-type-icon {
+            font-size: 20px;
+        }
+        
+        .dispute-type-title {
+            font-weight: 600;
+            flex: 1;
+        }
+        
+        .dispute-type-radio {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .dispute-type-desc {
+            font-size: 14px;
+            color: #666;
+            margin-left: 32px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <button onclick="history.back()" class="btn btn-secondary" style="padding: 8px 12px;">←</button>
+                    <div class="logo">Tạo Khiếu Nại</div>
+                </div>
+                <div class="user-info">
+                    <div class="user-name">Đang tải...</div>
+                    <div class="user-avatar">👤</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container" style="padding: 24px 16px 80px;">
+        <div id="disputeContent">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Đang tải thông tin giao dịch...</p>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/app.js"></script>
+    <script>
+        let currentTransaction = null;
+        let selectedDisputeType = '';
+        let evidenceFiles = [];
+
+        function loadDispute() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const transactionId = urlParams.get('id');
+            
+            if (!transactionId) {
+                showError('Không tìm thấy mã giao dịch');
+                return;
+            }
+
+            currentTransaction = App.Transaction.getById(transactionId);
+            
+            if (!currentTransaction) {
+                showError('Không tìm thấy giao dịch');
+                return;
+            }
+
+            if (!['PAID', 'SHIPPING'].includes(currentTransaction.status)) {
+                showError('Chỉ có thể tạo khiếu nại cho giao dịch đã thanh toán hoặc đang giao hàng');
+                return;
+            }
+
+            renderDispute();
+        }
+
+        function renderDispute() {
+            const container = document.getElementById('disputeContent');
+            
+            container.innerHTML = `
+                <!-- Transaction Info -->
+                <div class="card mb-24">
+                    <div class="card-header">📋 Thông tin giao dịch</div>
+                    <div class="card-body">
+                        <div style="text-align: center; margin-bottom: 16px;">
+                            <h3 style="margin-bottom: 8px;">#${currentTransaction.id}</h3>
+                            <div style="font-size: 24px; font-weight: bold; color: #28a745;">
+                                ${App.Utils.formatCurrency(currentTransaction.amount)}
+                            </div>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 12px; border-radius: 8px;">
+                            <p style="margin: 4px 0;"><strong>Sản phẩm:</strong> ${currentTransaction.productName}</p>
+                            <p style="margin: 4px 0;"><strong>Người bán:</strong> ${currentTransaction.sellerName}</p>
+                            <p style="margin: 4px 0;"><strong>SĐT:</strong> ${currentTransaction.sellerPhone}</p>
+                            <p style="margin: 4px 0;"><strong>Trạng thái:</strong> 
+                                <span class="status-badge ${getStatusClass(currentTransaction.status)}">
+                                    ${getStatusText(currentTransaction.status)}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Warning -->
+                <div class="card mb-24" style="border-left: 4px solid #ffc107;">
+                    <div class="card-body">
+                        <h4 style="margin: 0 0 12px 0; color: #856404;">⚠️ Lưu ý quan trọng</h4>
+                        <ul style="margin: 0; padding-left: 20px; color: #856404; font-size: 14px;">
+                            <li>Khiếu nại chỉ nên được tạo khi có vấn đề thực sự với giao dịch</li>
+                            <li>Vui lòng cung cấp bằng chứng rõ ràng và chi tiết</li>
+                            <li>Admin sẽ xem xét và phân xử trong vòng 24-48 giờ</li>
+                            <li>Quyết định của admin là cuối cùng</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Dispute Form -->
+                <form id="disputeForm">
+                    <!-- Dispute Type -->
+                    <div class="card mb-24">
+                        <div class="card-header">🔍 Loại khiếu nại</div>
+                        <div class="card-body">
+                            <div class="dispute-types">
+                                <div class="dispute-type" onclick="selectDisputeType('not_received')" data-type="not_received">
+                                    <div class="dispute-type-header">
+                                        <div class="dispute-type-icon">📦</div>
+                                        <div class="dispute-type-title">Chưa nhận được hàng</div>
+                                        <input type="radio" name="dispute_type" value="not_received" class="dispute-type-radio">
+                                    </div>
+                                    <div class="dispute-type-desc">
+                                        Đã quá thời gian giao hàng nhưng chưa nhận được sản phẩm
+                                    </div>
+                                </div>
+                                
+                                <div class="dispute-type" onclick="selectDisputeType('wrong_item')" data-type="wrong_item">
+                                    <div class="dispute-type-header">
+                                        <div class="dispute-type-icon">❌</div>
+                                        <div class="dispute-type-title">Sai sản phẩm</div>
+                                        <input type="radio" name="dispute_type" value="wrong_item" class="dispute-type-radio">
+                                    </div>
+                                    <div class="dispute-type-desc">
+                                        Nhận được sản phẩm khác với mô tả hoặc thỏa thuận
+                                    </div>
+                                </div>
+                                
+                                <div class="dispute-type" onclick="selectDisputeType('damaged')" data-type="damaged">
+                                    <div class="dispute-type-header">
+                                        <div class="dispute-type-icon">💔</div>
+                                        <div class="dispute-type-title">Hàng bị hỏng</div>
+                                        <input type="radio" name="dispute_type" value="damaged" class="dispute-type-radio">
+                                    </div>
+                                    <div class="dispute-type-desc">
+                                        Sản phẩm bị hỏng, không hoạt động hoặc có khiếm khuyết
+                                    </div>
+                                </div>
+                                
+                                <div class="dispute-type" onclick="selectDisputeType('fake')" data-type="fake">
+                                    <div class="dispute-type-header">
+                                        <div class="dispute-type-icon">🚫</div>
+                                        <div class="dispute-type-title">Hàng giả/nhái</div>
+                                        <input type="radio" name="dispute_type" value="fake" class="dispute-type-radio">
+                                    </div>
+                                    <div class="dispute-type-desc">
+                                        Sản phẩm là hàng giả, nhái hoặc không chính hãng
+                                    </div>
+                                </div>
+                                
+                                <div class="dispute-type" onclick="selectDisputeType('other')" data-type="other">
+                                    <div class="dispute-type-header">
+                                        <div class="dispute-type-icon">📝</div>
+                                        <div class="dispute-type-title">Khác</div>
+                                        <input type="radio" name="dispute_type" value="other" class="dispute-type-radio">
+                                    </div>
+                                    <div class="dispute-type-desc">
+                                        Vấn đề khác không thuộc các loại trên
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="error-message" id="disputeTypeError"></div>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="card mb-24">
+                        <div class="card-header">📝 Mô tả chi tiết</div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">Mô tả vấn đề *</label>
+                                <textarea class="form-control" id="disputeDescription" rows="6" 
+                                    placeholder="Vui lòng mô tả chi tiết vấn đề bạn gặp phải. Càng chi tiết càng tốt để admin có thể xử lý nhanh chóng." required></textarea>
+                                <div class="error-message" id="disputeDescriptionError"></div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Yêu cầu giải quyết</label>
+                                <select class="form-control" id="disputeResolution">
+                                    <option value="refund">Hoàn tiền</option>
+                                    <option value="exchange">Đổi hàng</option>
+                                    <option value="partial_refund">Hoàn một phần tiền</option>
+                                    <option value="other">Khác (ghi rõ trong mô tả)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Evidence Upload -->
+                    <div class="card mb-24">
+                        <div class="card-header">📸 Bằng chứng</div>
+                        <div class="card-body">
+                            <p style="margin-bottom: 12px; font-size: 14px; color: #666;">
+                                Tải lên hình ảnh, video hoặc tài liệu làm bằng chứng cho khiếu nại của bạn
+                            </p>
+                            
+                            <div class="evidence-upload" onclick="document.getElementById('evidenceInput').click()">
+                                <div style="font-size: 48px; margin-bottom: 12px;">📁</div>
+                                <p style="margin: 0; font-weight: 500;">Nhấn để chọn file</p>
+                                <p style="margin: 4px 0 0 0; font-size: 12px; color: #666;">
+                                    Hỗ trợ: JPG, PNG, PDF, MP4 (tối đa 10MB mỗi file)
+                                </p>
+                            </div>
+                            
+                            <input type="file" id="evidenceInput" multiple accept="image/*,video/*,.pdf" style="display: none;">
+                            
+                            <div class="evidence-list" id="evidenceList"></div>
+                        </div>
+                    </div>
+
+                    <!-- Submit -->
+                    <div class="card">
+                        <div class="card-body">
+                            <button type="submit" class="btn btn-danger btn-full mb-16" id="submitBtn">
+                                ⚠️ Gửi Khiếu Nại
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-full" onclick="history.back()">
+                                Hủy bỏ
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            `;
+
+            // Setup file upload
+            setupFileUpload();
+        }
+
+        function selectDisputeType(type) {
+            selectedDisputeType = type;
+            
+            // Update UI
+            document.querySelectorAll('.dispute-type').forEach(el => {
+                el.classList.remove('selected');
+            });
+            document.querySelector(`[data-type="${type}"]`).classList.add('selected');
+            
+            // Update radio buttons
+            document.querySelectorAll('input[name="dispute_type"]').forEach(radio => {
+                radio.checked = radio.value === type;
+            });
+        }
+
+        function setupFileUpload() {
+            const input = document.getElementById('evidenceInput');
+            const uploadArea = document.querySelector('.evidence-upload');
+            
+            input.addEventListener('change', handleFileSelect);
+            
+            // Drag and drop
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+            
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+            
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                
+                const files = Array.from(e.dataTransfer.files);
+                addFiles(files);
+            });
+        }
+
+        function handleFileSelect(e) {
+            const files = Array.from(e.target.files);
+            addFiles(files);
+        }
+
+        function addFiles(files) {
+            files.forEach(file => {
+                if (file.size > 10 * 1024 * 1024) { // 10MB
+                    alert(`File "${file.name}" quá lớn. Vui lòng chọn file nhỏ hơn 10MB.`);
+                    return;
+                }
+                
+                evidenceFiles.push(file);
+            });
+            
+            renderEvidenceList();
+        }
+
+        function renderEvidenceList() {
+            const container = document.getElementById('evidenceList');
+            
+            if (evidenceFiles.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            const html = evidenceFiles.map((file, index) => `
+                <div class="evidence-item">
+                    <div class="evidence-info">
+                        <div class="evidence-icon">
+                            ${file.type.startsWith('image/') ? '🖼️' : 
+                              file.type.startsWith('video/') ? '🎥' : 
+                              file.type === 'application/pdf' ? '📄' : '📁'}
+                        </div>
+                        <div class="evidence-details">
+                            <div class="evidence-name">${file.name}</div>
+                            <div class="evidence-size">${formatFileSize(file.size)}</div>
+                        </div>
+                    </div>
+                    <button class="remove-evidence" onclick="removeEvidence(${index})">Xóa</button>
+                </div>
+            `).join('');
+            
+            container.innerHTML = html;
+        }
+
+        function removeEvidence(index) {
+            evidenceFiles.splice(index, 1);
+            renderEvidenceList();
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function getStatusClass(status) {
+            const statusClasses = {
+                'PAID': 'status-paid',
+                'SHIPPING': 'status-shipping'
+            };
+            return statusClasses[status] || 'status-pending';
+        }
+
+        function getStatusText(status) {
+            return App.CONFIG.TRANSACTION_STATUSES[status] || status;
+        }
+
+        function showError(message) {
+            document.getElementById('disputeContent').innerHTML = `
+                <div style="text-align: center; padding: 40px 20px; color: #dc3545;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">❌</div>
+                    <p>${message}</p>
+                    <button class="btn btn-primary mt-16" onclick="history.back()">Quay lại</button>
+                </div>
+            `;
+        }
+
+        // Form submission
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = App.User.getCurrentUser();
+            if (user) {
+                document.querySelector('.user-name').textContent = user.name;
+                loadDispute();
+            }
+            
+            // Form submit handler
+            document.addEventListener('submit', (e) => {
+                if (e.target.id === 'disputeForm') {
+                    e.preventDefault();
+                    submitDispute();
+                }
+            });
+        });
+
+        function submitDispute() {
+            const description = document.getElementById('disputeDescription').value.trim();
+            const resolution = document.getElementById('disputeResolution').value;
+            
+            // Clear previous errors
+            document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+            document.querySelectorAll('.form-control').forEach(el => el.classList.remove('error'));
+            
+            // Validate
+            let hasError = false;
+            
+            if (!selectedDisputeType) {
+                document.getElementById('disputeTypeError').textContent = 'Vui lòng chọn loại khiếu nại';
+                hasError = true;
+            }
+            
+            if (!description) {
+                document.getElementById('disputeDescription').classList.add('error');
+                document.getElementById('disputeDescriptionError').textContent = 'Vui lòng mô tả chi tiết vấn đề';
+                hasError = true;
+            } else if (description.length < 50) {
+                document.getElementById('disputeDescription').classList.add('error');
+                document.getElementById('disputeDescriptionError').textContent = 'Mô tả phải có ít nhất 50 ký tự';
+                hasError = true;
+            }
+            
+            if (hasError) return;
+            
+            // Submit
+            const submitBtn = document.getElementById('submitBtn');
+            const originalText = submitBtn.innerHTML;
+            
+            submitBtn.innerHTML = '⏳ Đang gửi khiếu nại...';
+            submitBtn.disabled = true;
+            
+            // Simulate API call
+            setTimeout(() => {
+                // Update transaction status
+                App.Transaction.update(currentTransaction.id, { status: 'DISPUTED' });
+                
+                alert(`Khiếu nại đã được gửi thành công!\n\nMã khiếu nại: DSP${Date.now()}\nLoại: ${getDisputeTypeText(selectedDisputeType)}\n\nAdmin sẽ xem xét và liên hệ với bạn trong vòng 24-48 giờ.`);
+                
+                window.location.href = `transaction-detail.html?id=${currentTransaction.id}`;
+            }, 2000);
+        }
+
+        function getDisputeTypeText(type) {
+            const types = {
+                'not_received': 'Chưa nhận được hàng',
+                'wrong_item': 'Sai sản phẩm',
+                'damaged': 'Hàng bị hỏng',
+                'fake': 'Hàng giả/nhái',
+                'other': 'Khác'
+            };
+            return types[type] || type;
+        }
+    </script>
+</body>
+</html>

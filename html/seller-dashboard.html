@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Người Bán - SafeTrade</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">SafeTrade</div>
+                <div class="user-info">
+                    <div class="user-details">
+                        <div class="user-name">Đang tải...</div>
+                        <div class="user-role" style="font-size: 12px; opacity: 0.8;">Người bán</div>
+                    </div>
+                    <div class="user-avatar">🏪</div>
+                    <button class="btn btn-secondary" onclick="App.User.logout()" style="margin-left: 12px; padding: 8px 16px; font-size: 14px;">Đăng xuất</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container">
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="seller-dashboard.html" class="nav-link active">Trang chủ</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" onclick="filterTransactions('all')">Tất cả</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" onclick="filterTransactions('pending')">Cần xử lý</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" onclick="filterTransactions('completed')">Hoàn tất</a>
+                </li>
+                <li class="nav-item">
+                    <a href="rooms.html" class="nav-link">Phòng GD</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container" style="padding-bottom: 80px;">
+        <!-- Stats Cards -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin: 24px 0;">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div style="font-size: 24px; font-weight: bold; color: #007BFF;" id="totalTransactions">0</div>
+                    <div style="font-size: 14px; color: #666;">Tổng giao dịch</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body text-center">
+                    <div style="font-size: 24px; font-weight: bold; color: #ffc107;" id="pendingTransactions">0</div>
+                    <div style="font-size: 14px; color: #666;">Cần xử lý</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body text-center">
+                    <div style="font-size: 24px; font-weight: bold; color: #28a745;" id="completedTransactions">0</div>
+                    <div style="font-size: 14px; color: #666;">Hoàn thành</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body text-center">
+                    <div style="font-size: 18px; font-weight: bold; color: #28a745;" id="totalEarnings">0đ</div>
+                    <div style="font-size: 14px; color: #666;">Thu nhập</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card mb-24">
+            <div class="card-header">Thao tác nhanh</div>
+            <div class="card-body">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                    <button class="btn btn-primary" onclick="filterTransactions('pending')">
+                        ⏳ Xem giao dịch cần xử lý
+                    </button>
+                    <button class="btn btn-secondary" onclick="refreshTransactions()">
+                        🔄 Làm mới
+                    </button>
+                    <a href="rooms.html" class="btn btn-success">
+                        🏢 Quản lý phòng
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Priority Notifications -->
+        <div id="priorityNotifications"></div>
+
+        <!-- Transactions List -->
+        <div class="card">
+            <div class="card-header">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>Giao dịch của tôi</span>
+                    <select id="statusFilter" class="form-control" style="width: auto; min-width: 150px;" onchange="filterTransactions(this.value)">
+                        <option value="all">Tất cả trạng thái</option>
+                        <option value="pending">Cần xử lý</option>
+                        <option value="PENDING_SELLER">Chờ xác nhận</option>
+                        <option value="PENDING_PAYMENT">Chờ thanh toán</option>
+                        <option value="PAID">Đã thanh toán</option>
+                        <option value="SHIPPING">Đang giao</option>
+                        <option value="COMPLETED">Hoàn tất</option>
+                        <option value="DISPUTED">Tranh chấp</option>
+                    </select>
+                </div>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                <div id="transactionsList">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Đang tải giao dịch...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="seller-dashboard.html" class="bottom-nav-item active">
+            <span class="bottom-nav-icon">🏠</span>
+            <span>Trang chủ</span>
+        </a>
+        <a href="#" class="bottom-nav-item" onclick="filterTransactions('pending')">
+            <span class="bottom-nav-icon">⏳</span>
+            <span>Cần xử lý</span>
+        </a>
+        <a href="rooms.html" class="bottom-nav-item">
+            <span class="bottom-nav-icon">🏢</span>
+            <span>Phòng GD</span>
+        </a>
+        <a href="#" class="bottom-nav-item" onclick="showProfile()">
+            <span class="bottom-nav-icon">👤</span>
+            <span>Tài khoản</span>
+        </a>
+    </nav>
+
+    <script src="js/app.js"></script>
+    <script>
+        let currentFilter = 'all';
+        let allTransactions = [];
+
+        function loadTransactions() {
+            const user = App.User.getCurrentUser();
+            if (!user) return;
+
+            // For demo, we'll create some mock transactions for seller
+            const mockSellerTransactions = [
+                {
+                    id: 'TXN003',
+                    buyerId: 'buyer2',
+                    buyerName: 'Lê Văn C',
+                    buyerPhone: '0912345678',
+                    sellerId: user.id,
+                    sellerName: user.name,
+                    sellerPhone: user.phone,
+                    productName: 'Samsung Galaxy S24',
+                    productDescription: 'Máy mới nguyên seal, chưa kích hoạt',
+                    amount: 22000000,
+                    status: 'PENDING_SELLER',
+                    createdAt: new Date('2024-01-16T09:15:00'),
+                    updatedAt: new Date('2024-01-16T09:15:00')
+                },
+                {
+                    id: 'TXN004',
+                    buyerId: 'buyer3',
+                    buyerName: 'Phạm Thị D',
+                    buyerPhone: '0923456789',
+                    sellerId: user.id,
+                    sellerName: user.name,
+                    sellerPhone: user.phone,
+                    productName: 'iPad Pro 12.9',
+                    productDescription: 'iPad Pro 2023, 256GB, WiFi + Cellular',
+                    amount: 30000000,
+                    status: 'PAID',
+                    createdAt: new Date('2024-01-15T16:30:00'),
+                    updatedAt: new Date('2024-01-15T18:45:00')
+                }
+            ];
+
+            // Merge with existing transactions
+            const existingTransactions = App.Transaction.getAll();
+            const userTransactions = existingTransactions.filter(t => t.sellerId === user.id);
+            
+            // Add mock transactions if not exist
+            mockSellerTransactions.forEach(mockTx => {
+                if (!existingTransactions.find(t => t.id === mockTx.id)) {
+                    existingTransactions.push(mockTx);
+                }
+            });
+            
+            App.Storage.set('transactions', existingTransactions);
+            allTransactions = App.Transaction.getByUser(user.id, 'seller');
+            
+            updateStats();
+            renderTransactions(allTransactions);
+            showPriorityNotifications();
+        }
+
+        function updateStats() {
+            const total = allTransactions.length;
+            const pending = allTransactions.filter(t => 
+                ['PENDING_SELLER', 'PAID'].includes(t.status)
+            ).length;
+            const completed = allTransactions.filter(t => t.status === 'COMPLETED').length;
+            const totalEarnings = allTransactions
+                .filter(t => t.status === 'COMPLETED')
+                .reduce((sum, t) => sum + (t.amount * 0.98), 0); // 98% after 2% fee
+
+            document.getElementById('totalTransactions').textContent = total;
+            document.getElementById('pendingTransactions').textContent = pending;
+            document.getElementById('completedTransactions').textContent = completed;
+            document.getElementById('totalEarnings').textContent = App.Utils.formatCurrency(totalEarnings);
+        }
+
+        function showPriorityNotifications() {
+            const container = document.getElementById('priorityNotifications');
+            const urgentTransactions = allTransactions.filter(t => 
+                ['PENDING_SELLER', 'PAID'].includes(t.status)
+            );
+
+            if (urgentTransactions.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            const notifications = urgentTransactions.map(tx => {
+                let message = '';
+                let actionText = '';
+                let actionClass = 'btn-primary';
+                
+                if (tx.status === 'PENDING_SELLER') {
+                    message = `Giao dịch #${tx.id} cần xác nhận`;
+                    actionText = 'Xác nhận ngay';
+                } else if (tx.status === 'PAID') {
+                    message = `Giao dịch #${tx.id} đã thanh toán, cần gửi hàng`;
+                    actionText = 'Xác nhận gửi hàng';
+                    actionClass = 'btn-success';
+                }
+
+                return `
+                    <div class="card mb-16" style="border-left: 4px solid #ffc107;">
+                        <div class="card-body">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <div style="font-weight: 600; color: #856404;">⚠️ ${message}</div>
+                                    <div style="font-size: 14px; color: #666; margin-top: 4px;">
+                                        ${tx.productName} - ${App.Utils.formatCurrency(tx.amount)}
+                                    </div>
+                                </div>
+                                <button class="btn ${actionClass}" onclick="viewTransaction('${tx.id}')" style="padding: 8px 16px; font-size: 14px;">
+                                    ${actionText}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = notifications;
+        }
+
+        function renderTransactions(transactions) {
+            const container = document.getElementById('transactionsList');
+            
+            if (transactions.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px; color: #666;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">📦</div>
+                        <p>Chưa có giao dịch nào</p>
+                        <p style="font-size: 14px; margin-top: 8px;">
+                            Giao dịch sẽ xuất hiện khi có người mua tạo đơn với thông tin của bạn
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = transactions.map(transaction => {
+                const isUrgent = ['PENDING_SELLER', 'PAID'].includes(transaction.status);
+                
+                return `
+                    <div class="transaction-item ${isUrgent ? 'urgent' : ''}" onclick="viewTransaction('${transaction.id}')" style="${isUrgent ? 'border-left: 4px solid #ffc107;' : ''}">
+                        <div class="transaction-header">
+                            <div class="transaction-id">
+                                #${transaction.id}
+                                ${isUrgent ? '<span style="color: #ffc107; margin-left: 8px;">⚠️</span>' : ''}
+                            </div>
+                            <div class="transaction-amount">${App.Utils.formatCurrency(transaction.amount)}</div>
+                        </div>
+                        <div class="transaction-details">
+                            <strong>${transaction.productName}</strong><br>
+                            Người mua: ${transaction.buyerName} - ${transaction.buyerPhone}
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+                            <span class="status-badge ${getStatusClass(transaction.status)}">
+                                ${getStatusText(transaction.status)}
+                            </span>
+                            <span style="font-size: 12px; color: #999;">
+                                ${App.Utils.formatDate(transaction.updatedAt)}
+                            </span>
+                        </div>
+                        ${renderQuickActions(transaction)}
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
+        }
+
+        function renderQuickActions(transaction) {
+            if (transaction.status === 'PENDING_SELLER') {
+                return `
+                    <div style="margin-top: 12px; display: flex; gap: 8px;">
+                        <button class="btn btn-success" onclick="event.stopPropagation(); quickConfirm('${transaction.id}')" style="flex: 1; padding: 8px; font-size: 14px;">
+                            ✅ Xác nhận
+                        </button>
+                        <button class="btn btn-danger" onclick="event.stopPropagation(); quickReject('${transaction.id}')" style="flex: 1; padding: 8px; font-size: 14px;">
+                            ❌ Từ chối
+                        </button>
+                    </div>
+                `;
+            } else if (transaction.status === 'PAID') {
+                return `
+                    <div style="margin-top: 12px;">
+                        <button class="btn btn-primary btn-full" onclick="event.stopPropagation(); quickShip('${transaction.id}')" style="padding: 8px; font-size: 14px;">
+                            🚚 Xác nhận đã gửi hàng
+                        </button>
+                    </div>
+                `;
+            }
+            return '';
+        }
+
+        function getStatusClass(status) {
+            const statusClasses = {
+                'PENDING_SELLER': 'status-pending',
+                'PENDING_PAYMENT': 'status-pending',
+                'PAID': 'status-paid',
+                'SHIPPING': 'status-shipping',
+                'COMPLETED': 'status-completed',
+                'DISPUTED': 'status-disputed'
+            };
+            return statusClasses[status] || 'status-pending';
+        }
+
+        function getStatusText(status) {
+            return App.CONFIG.TRANSACTION_STATUSES[status] || status;
+        }
+
+        function filterTransactions(filter) {
+            currentFilter = filter;
+            
+            let filteredTransactions = allTransactions;
+            
+            if (filter !== 'all') {
+                if (filter === 'pending') {
+                    filteredTransactions = allTransactions.filter(t => 
+                        ['PENDING_SELLER', 'PAID'].includes(t.status)
+                    );
+                } else if (filter === 'completed') {
+                    filteredTransactions = allTransactions.filter(t => t.status === 'COMPLETED');
+                } else {
+                    filteredTransactions = allTransactions.filter(t => t.status === filter);
+                }
+            }
+            
+            renderTransactions(filteredTransactions);
+            
+            // Update filter select
+            document.getElementById('statusFilter').value = filter;
+        }
+
+        function viewTransaction(transactionId) {
+            window.location.href = `transaction-detail.html?id=${transactionId}`;
+        }
+
+        function quickConfirm(transactionId) {
+            if (confirm('Xác nhận giao dịch này?')) {
+                App.Transaction.update(transactionId, { status: 'PENDING_PAYMENT' });
+                loadTransactions();
+                filterTransactions(currentFilter);
+                alert('Đã xác nhận giao dịch. Người mua sẽ nhận được thông báo để thanh toán.');
+            }
+        }
+
+        function quickReject(transactionId) {
+            const reason = prompt('Lý do từ chối:');
+            if (reason) {
+                alert('Đã từ chối giao dịch. Người mua sẽ nhận được thông báo.');
+                // In real app, would update status to REJECTED
+                loadTransactions();
+                filterTransactions(currentFilter);
+            }
+        }
+
+        function quickShip(transactionId) {
+            if (confirm('Xác nhận bạn đã gửi hàng?')) {
+                App.Transaction.update(transactionId, { status: 'SHIPPING' });
+                loadTransactions();
+                filterTransactions(currentFilter);
+                alert('Đã cập nhật trạng thái giao hàng. Người mua sẽ nhận được thông báo.');
+            }
+        }
+
+        function refreshTransactions() {
+            App.Utils.showLoading(document.getElementById('transactionsList'));
+            setTimeout(() => {
+                loadTransactions();
+                filterTransactions(currentFilter);
+            }, 1000);
+        }
+
+        function showEarnings() {
+            const completedTransactions = allTransactions.filter(t => t.status === 'COMPLETED');
+            const totalEarnings = completedTransactions.reduce((sum, t) => sum + (t.amount * 0.98), 0);
+            
+            let message = `💰 Tổng thu nhập: ${App.Utils.formatCurrency(totalEarnings)}\n\n`;
+            message += `📊 Chi tiết:\n`;
+            message += `- Giao dịch hoàn thành: ${completedTransactions.length}\n`;
+            message += `- Phí dịch vụ (2%): ${App.Utils.formatCurrency(completedTransactions.reduce((sum, t) => sum + (t.amount * 0.02), 0))}\n`;
+            message += `- Thu nhập ròng: ${App.Utils.formatCurrency(totalEarnings)}`;
+            
+            alert(message);
+        }
+
+        function showProfile() {
+            const user = App.User.getCurrentUser();
+            alert(`Thông tin tài khoản:\nTên: ${user.name}\nSĐT: ${user.phone}\nVai trò: Người bán`);
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = App.User.getCurrentUser();
+            if (user) {
+                document.querySelector('.user-name').textContent = user.name;
+                loadTransactions();
+            }
+        });
+    </script>
+</body>
+</html>
