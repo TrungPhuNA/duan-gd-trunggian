@@ -131,7 +131,7 @@
                     <div class="card-body">
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                             <div>
-                                <h4 style="margin-bottom: 8px; color: #667eea;">🛒 Người mua</h4>
+                                <h4 style="margin-bottom: 8px; color: #007BFF;">🛒 Người mua</h4>
                                 <p style="margin: 4px 0;"><strong>${currentTransaction.buyerName || 'N/A'}</strong></p>
                                 <p style="margin: 4px 0; color: #666;">${currentTransaction.buyerPhone || 'N/A'}</p>
                             </div>
@@ -193,7 +193,7 @@
                             ${isCompleted ? '✓' : ''}
                         </div>
                         <div style="flex: 1;">
-                            <div style="font-weight: ${isCurrent ? 'bold' : 'normal'}; color: ${isCurrent ? '#667eea' : '#333'};">
+                            <div style="font-weight: ${isCurrent ? 'bold' : 'normal'}; color: ${isCurrent ? '#007BFF' : '#333'};">
                                 ${item.text}
                             </div>
                             ${item.date ? `<div style="font-size: 12px; color: #666;">${App.Utils.formatDate(item.date)}</div>` : ''}
