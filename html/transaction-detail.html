@@ -152,6 +152,9 @@
                     </div>
                 </div>
 
+                <!-- Dispute Info -->
+                ${renderDisputeInfo()}
+
                 <!-- Actions -->
                 <div class="card mb-24">
                     <div class="card-header">⚡ Thao tác</div>
@@ -203,8 +206,82 @@
             }).join('');
         }
 
+        function renderDisputeInfo() {
+            const dispute = App.Dispute.getByTransaction(currentTransaction.id);
+
+            if (!dispute) return '';
+
+            return `
+                <div class="card mb-24" style="border-left: 4px solid #dc3545;">
+                    <div class="card-header" style="background: #f8d7da; color: #721c24;">
+                        ⚠️ Thông tin khiếu nại
+                    </div>
+                    <div class="card-body">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <strong>Mã khiếu nại: #${dispute.id}</strong>
+                            <span class="status-badge ${getDisputeStatusClass(dispute.status)}">
+                                ${getDisputeStatusText(dispute.status)}
+                            </span>
+                        </div>
+                        <div style="margin-bottom: 12px;">
+                            <strong>Loại khiếu nại:</strong> ${getDisputeTypeText(dispute.type)}<br>
+                            <strong>Tiêu đề:</strong> ${dispute.title}
+                        </div>
+                        <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; margin-bottom: 12px;">
+                            <strong>Mô tả:</strong><br>
+                            ${dispute.description}
+                        </div>
+                        ${dispute.adminResponse ? `
+                            <div style="background: #e6f3ff; padding: 12px; border-radius: 6px; border-left: 3px solid #007BFF;">
+                                <strong>Phản hồi Admin:</strong><br>
+                                ${dispute.adminResponse}
+                                ${dispute.winner ? `<br><strong>Kết quả:</strong> ${dispute.winner === 'buyer' ? '🛒 Người mua thắng' : '🏪 Người bán thắng'}` : ''}
+                            </div>
+                        ` : ''}
+                        <div style="text-align: center; margin-top: 16px;">
+                            <a href="dispute-detail.html?id=${dispute.id}" class="btn btn-secondary">
+                                📋 Xem chi tiết khiếu nại
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getDisputeStatusClass(status) {
+            const classes = {
+                'pending': 'status-pending',
+                'investigating': 'status-paid',
+                'resolved': 'status-completed',
+                'rejected': 'status-disputed'
+            };
+            return classes[status] || 'status-pending';
+        }
+
+        function getDisputeStatusText(status) {
+            const texts = {
+                'pending': 'Chờ xử lý',
+                'investigating': 'Đang xử lý',
+                'resolved': 'Đã giải quyết',
+                'rejected': 'Đã từ chối'
+            };
+            return texts[status] || status;
+        }
+
+        function getDisputeTypeText(type) {
+            const types = {
+                'not_received': 'Chưa nhận được hàng',
+                'wrong_item': 'Sai sản phẩm',
+                'damaged': 'Hàng bị hỏng',
+                'fake': 'Hàng giả/nhái',
+                'other': 'Khác'
+            };
+            return types[type] || type;
+        }
+
         function renderActions(userRole) {
             const status = currentTransaction.status;
+            const dispute = App.Dispute.getByTransaction(currentTransaction.id);
             let actions = [];
 
             if (userRole === 'buyer') {
@@ -246,8 +323,8 @@
                         break;
                 }
 
-                // Add dispute option for certain statuses
-                if (['PAID', 'SHIPPING'].includes(status)) {
+                // Add dispute option for certain statuses (only if no dispute exists)
+                if (['PAID', 'SHIPPING'].includes(status) && !dispute) {
                     actions.push(`
                         <button class="btn btn-warning btn-full" onclick="createDispute()">
                             ⚠️ Tạo khiếu nại

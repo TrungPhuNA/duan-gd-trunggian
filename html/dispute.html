@@ -489,19 +489,19 @@
         function submitDispute() {
             const description = document.getElementById('disputeDescription').value.trim();
             const resolution = document.getElementById('disputeResolution').value;
-            
+
             // Clear previous errors
             document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
             document.querySelectorAll('.form-control').forEach(el => el.classList.remove('error'));
-            
+
             // Validate
             let hasError = false;
-            
+
             if (!selectedDisputeType) {
                 document.getElementById('disputeTypeError').textContent = 'Vui lòng chọn loại khiếu nại';
                 hasError = true;
             }
-            
+
             if (!description) {
                 document.getElementById('disputeDescription').classList.add('error');
                 document.getElementById('disputeDescriptionError').textContent = 'Vui lòng mô tả chi tiết vấn đề';
@@ -511,24 +511,54 @@
                 document.getElementById('disputeDescriptionError').textContent = 'Mô tả phải có ít nhất 50 ký tự';
                 hasError = true;
             }
-            
+
             if (hasError) return;
-            
+
             // Submit
             const submitBtn = document.getElementById('submitBtn');
             const originalText = submitBtn.innerHTML;
-            
+
             submitBtn.innerHTML = '⏳ Đang gửi khiếu nại...';
             submitBtn.disabled = true;
-            
+
+            // Get current user
+            const user = App.User.getCurrentUser();
+
+            // Prepare dispute data
+            const disputeData = {
+                transactionId: currentTransaction.id,
+                buyerId: user.id,
+                buyerName: user.name,
+                sellerId: currentTransaction.sellerId,
+                sellerName: currentTransaction.sellerName,
+                type: selectedDisputeType,
+                title: getDisputeTypeText(selectedDisputeType),
+                description: description,
+                resolution: resolution,
+                evidence: evidenceFiles.map(file => file.name)
+            };
+
             // Simulate API call
             setTimeout(() => {
-                // Update transaction status
-                App.Transaction.update(currentTransaction.id, { status: 'DISPUTED' });
-                
-                alert(`Khiếu nại đã được gửi thành công!\n\nMã khiếu nại: DSP${Date.now()}\nLoại: ${getDisputeTypeText(selectedDisputeType)}\n\nAdmin sẽ xem xét và liên hệ với bạn trong vòng 24-48 giờ.`);
-                
-                window.location.href = `transaction-detail.html?id=${currentTransaction.id}`;
+                try {
+                    // Create dispute
+                    const dispute = App.Dispute.create(disputeData);
+
+                    // Update transaction status
+                    App.Transaction.update(currentTransaction.id, { status: 'DISPUTED' });
+
+                    alert(`Khiếu nại đã được gửi thành công!\n\nMã khiếu nại: ${dispute.id}\nLoại: ${getDisputeTypeText(selectedDisputeType)}\n\nAdmin sẽ xem xét và liên hệ với bạn trong vòng 24-48 giờ.`);
+
+                    // Redirect to dispute detail
+                    window.location.href = `dispute-detail.html?id=${dispute.id}`;
+
+                } catch (error) {
+                    alert('Có lỗi xảy ra khi gửi khiếu nại. Vui lòng thử lại.');
+
+                    // Restore button
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                }
             }, 2000);
         }
 

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khiếu Nại Của Tôi - SafeTrade</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <button onclick="history.back()" class="btn btn-secondary" style="padding: 8px 12px;">←</button>
+                    <div class="logo">Khiếu Nại Của Tôi</div>
+                </div>
+                <div class="user-info">
+                    <div class="user-name">Đang tải...</div>
+                    <div class="user-avatar">👤</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container">
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active" onclick="filterDisputes('all')">Tất cả</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" onclick="filterDisputes('pending')">Chờ xử lý</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" onclick="filterDisputes('investigating')">Đang xử lý</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" onclick="filterDisputes('resolved')">Đã giải quyết</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container" style="padding-bottom: 80px;">
+        <!-- Stats Cards -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 16px; margin: 24px 0;">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div style="font-size: 20px; font-weight: bold; color: #dc3545;" id="totalDisputes">0</div>
+                    <div style="font-size: 12px; color: #666;">Tổng khiếu nại</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body text-center">
+                    <div style="font-size: 20px; font-weight: bold; color: #ffc107;" id="pendingDisputes">0</div>
+                    <div style="font-size: 12px; color: #666;">Chờ xử lý</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body text-center">
+                    <div style="font-size: 20px; font-weight: bold; color: #007BFF;" id="investigatingDisputes">0</div>
+                    <div style="font-size: 12px; color: #666;">Đang xử lý</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body text-center">
+                    <div style="font-size: 20px; font-weight: bold; color: #28a745;" id="resolvedDisputes">0</div>
+                    <div style="font-size: 12px; color: #666;">Đã giải quyết</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Disputes List -->
+        <div class="card">
+            <div class="card-header">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>Danh sách khiếu nại</span>
+                    <select id="statusFilter" class="form-control" style="width: auto; min-width: 120px;" onchange="filterDisputes(this.value)">
+                        <option value="all">Tất cả</option>
+                        <option value="pending">Chờ xử lý</option>
+                        <option value="investigating">Đang xử lý</option>
+                        <option value="resolved">Đã giải quyết</option>
+                        <option value="rejected">Đã từ chối</option>
+                    </select>
+                </div>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                <div id="disputesList">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Đang tải khiếu nại...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="buyer-dashboard.html" class="bottom-nav-item">
+            <span class="bottom-nav-icon">🏠</span>
+            <span>Trang chủ</span>
+        </a>
+        <a href="my-disputes.html" class="bottom-nav-item active">
+            <span class="bottom-nav-icon">⚠️</span>
+            <span>Khiếu nại</span>
+        </a>
+        <a href="rooms.html" class="bottom-nav-item">
+            <span class="bottom-nav-icon">🏢</span>
+            <span>Phòng GD</span>
+        </a>
+        <a href="#" class="bottom-nav-item" onclick="showProfile()">
+            <span class="bottom-nav-icon">👤</span>
+            <span>Tài khoản</span>
+        </a>
+    </nav>
+
+    <script src="js/app.js"></script>
+    <script>
+        let currentFilter = 'all';
+        let allDisputes = [];
+        let currentUser = null;
+
+        function loadDisputes() {
+            currentUser = App.User.getCurrentUser();
+            if (!currentUser) return;
+
+            allDisputes = App.Dispute.getByUser(currentUser.id, currentUser.role);
+            updateStats();
+            renderDisputes(allDisputes);
+        }
+
+        function updateStats() {
+            const total = allDisputes.length;
+            const pending = allDisputes.filter(d => d.status === 'pending').length;
+            const investigating = allDisputes.filter(d => d.status === 'investigating').length;
+            const resolved = allDisputes.filter(d => d.status === 'resolved').length;
+
+            document.getElementById('totalDisputes').textContent = total;
+            document.getElementById('pendingDisputes').textContent = pending;
+            document.getElementById('investigatingDisputes').textContent = investigating;
+            document.getElementById('resolvedDisputes').textContent = resolved;
+        }
+
+        function renderDisputes(disputes) {
+            const container = document.getElementById('disputesList');
+            
+            if (disputes.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px; color: #666;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">📋</div>
+                        <p>Chưa có khiếu nại nào</p>
+                        <p style="font-size: 14px; margin-top: 8px;">
+                            Khiếu nại sẽ xuất hiện khi bạn gặp vấn đề với giao dịch
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = disputes.map(dispute => {
+                const transaction = App.Transaction.getById(dispute.transactionId);
+                
+                return `
+                    <div class="transaction-item" onclick="viewDispute('${dispute.id}')">
+                        <div class="transaction-header">
+                            <div class="transaction-id">
+                                #${dispute.id}
+                                <span style="margin-left: 8px; font-size: 12px; color: #666;">
+                                    (${getTypeText(dispute.type)})
+                                </span>
+                            </div>
+                            <div class="transaction-amount" style="font-size: 14px;">
+                                ${transaction ? App.Utils.formatCurrency(transaction.amount) : 'N/A'}
+                            </div>
+                        </div>
+                        <div class="transaction-details">
+                            <strong>${dispute.title}</strong><br>
+                            Giao dịch: #${dispute.transactionId}<br>
+                            ${currentUser.role === 'buyer' ? `Người bán: ${dispute.sellerName}` : `Người mua: ${dispute.buyerName}`}
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+                            <span class="status-badge ${getStatusClass(dispute.status)}">
+                                ${getStatusText(dispute.status)}
+                            </span>
+                            <span style="font-size: 12px; color: #999;">
+                                ${App.Utils.formatDate(dispute.updatedAt)}
+                            </span>
+                        </div>
+                        
+                        ${dispute.status === 'resolved' && dispute.winner ? `
+                            <div style="margin-top: 8px; padding: 8px; background: ${dispute.winner === currentUser.role ? 'rgba(40, 167, 69, 0.1)' : 'rgba(220, 53, 69, 0.1)'}; border-radius: 4px; font-size: 12px;">
+                                <strong>Kết quả:</strong> ${dispute.winner === currentUser.role ? '✅ Bạn thắng kiện' : '❌ Bạn thua kiện'}
+                            </div>
+                        ` : ''}
+                        
+                        ${dispute.adminResponse ? `
+                            <div style="margin-top: 8px; padding: 8px; background: #e6f3ff; border-radius: 4px; font-size: 12px;">
+                                <strong>Admin:</strong> ${dispute.adminResponse.length > 100 ? dispute.adminResponse.substring(0, 100) + '...' : dispute.adminResponse}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
+        }
+
+        function getStatusClass(status) {
+            const statusClasses = {
+                'pending': 'status-pending',
+                'investigating': 'status-paid',
+                'resolved': 'status-completed',
+                'rejected': 'status-disputed'
+            };
+            return statusClasses[status] || 'status-pending';
+        }
+
+        function getStatusText(status) {
+            const statusTexts = {
+                'pending': 'Chờ xử lý',
+                'investigating': 'Đang xử lý',
+                'resolved': 'Đã giải quyết',
+                'rejected': 'Đã từ chối'
+            };
+            return statusTexts[status] || status;
+        }
+
+        function getTypeText(type) {
+            const typeTexts = {
+                'not_received': 'Chưa nhận hàng',
+                'wrong_item': 'Sai sản phẩm',
+                'damaged': 'Hàng bị hỏng',
+                'fake': 'Hàng giả',
+                'other': 'Khác'
+            };
+            return typeTexts[type] || type;
+        }
+
+        function filterDisputes(filter) {
+            currentFilter = filter;
+            
+            // Update active nav
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            let filteredDisputes = allDisputes;
+            if (filter !== 'all') {
+                filteredDisputes = allDisputes.filter(d => d.status === filter);
+            }
+            
+            renderDisputes(filteredDisputes);
+            document.getElementById('statusFilter').value = filter;
+        }
+
+        function viewDispute(disputeId) {
+            window.location.href = `dispute-detail.html?id=${disputeId}`;
+        }
+
+        function showProfile() {
+            const user = App.User.getCurrentUser();
+            alert(`Thông tin tài khoản:\nTên: ${user.name}\nSĐT: ${user.phone}\nVai trò: ${user.role === 'buyer' ? 'Người mua' : 'Người bán'}`);
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = App.User.getCurrentUser();
+            if (user) {
+                document.querySelector('.user-name').textContent = user.name;
+                loadDisputes();
+            }
+        });
+    </script>
+</body>
+</html>

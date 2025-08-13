@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Khiếu Nại - SafeTrade Admin</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .dispute-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+        
+        .dispute-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .dispute-id {
+            font-weight: 600;
+            font-size: 16px;
+            color: #333;
+        }
+        
+        .dispute-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .dispute-status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .dispute-status.investigating {
+            background: #cce5ff;
+            color: #004085;
+        }
+        
+        .dispute-status.resolved {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .dispute-status.rejected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .dispute-body {
+            padding: 20px;
+        }
+        
+        .dispute-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .dispute-type {
+            display: inline-block;
+            padding: 4px 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        
+        .dispute-description {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 12px 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .evidence-list {
+            display: flex;
+            gap: 8px;
+            margin: 12px 0;
+        }
+        
+        .evidence-item {
+            padding: 8px 12px;
+            background: #007BFF;
+            color: white;
+            border-radius: 6px;
+            font-size: 12px;
+            text-decoration: none;
+        }
+        
+        .admin-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+        
+        .priority-high {
+            border-left: 4px solid #dc3545;
+        }
+        
+        .priority-medium {
+            border-left: 4px solid #ffc107;
+        }
+        
+        .priority-low {
+            border-left: 4px solid #28a745;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">🛡️ Admin - Quản Lý Khiếu Nại</div>
+                <div class="user-info">
+                    <div class="user-details">
+                        <div class="user-name">Admin</div>
+                        <div class="user-role" style="font-size: 12px; opacity: 0.8;">Quản trị viên</div>
+                    </div>
+                    <div class="user-avatar">👨‍💼</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container">
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="admin-disputes.html" class="nav-link active">Khiếu nại</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" onclick="filterDisputes('pending')">Chờ xử lý</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" onclick="filterDisputes('investigating')">Đang xử lý</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" onclick="filterDisputes('resolved')">Đã giải quyết</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container" style="padding-bottom: 80px;">
+        <!-- Stats Cards -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin: 24px 0;">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div style="font-size: 24px; font-weight: bold; color: #dc3545;" id="totalDisputes">0</div>
+                    <div style="font-size: 14px; color: #666;">Tổng khiếu nại</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body text-center">
+                    <div style="font-size: 24px; font-weight: bold; color: #ffc107;" id="pendingDisputes">0</div>
+                    <div style="font-size: 14px; color: #666;">Chờ xử lý</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body text-center">
+                    <div style="font-size: 24px; font-weight: bold; color: #007BFF;" id="investigatingDisputes">0</div>
+                    <div style="font-size: 14px; color: #666;">Đang xử lý</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body text-center">
+                    <div style="font-size: 24px; font-weight: bold; color: #28a745;" id="resolvedDisputes">0</div>
+                    <div style="font-size: 14px; color: #666;">Đã giải quyết</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter -->
+        <div class="card mb-24">
+            <div class="card-header">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>Bộ lọc khiếu nại</span>
+                    <select id="statusFilter" class="form-control" style="width: auto; min-width: 150px;" onchange="filterDisputes(this.value)">
+                        <option value="all">Tất cả trạng thái</option>
+                        <option value="pending">Chờ xử lý</option>
+                        <option value="investigating">Đang xử lý</option>
+                        <option value="resolved">Đã giải quyết</option>
+                        <option value="rejected">Đã từ chối</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Disputes List -->
+        <div id="disputesList">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Đang tải danh sách khiếu nại...</p>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/app.js"></script>
+    <script>
+        let currentFilter = 'all';
+        let allDisputes = [];
+
+        function loadDisputes() {
+            allDisputes = App.Dispute.getAll();
+            updateStats();
+            renderDisputes(allDisputes);
+        }
+
+        function updateStats() {
+            const total = allDisputes.length;
+            const pending = allDisputes.filter(d => d.status === 'pending').length;
+            const investigating = allDisputes.filter(d => d.status === 'investigating').length;
+            const resolved = allDisputes.filter(d => d.status === 'resolved').length;
+
+            document.getElementById('totalDisputes').textContent = total;
+            document.getElementById('pendingDisputes').textContent = pending;
+            document.getElementById('investigatingDisputes').textContent = investigating;
+            document.getElementById('resolvedDisputes').textContent = resolved;
+        }
+
+        function renderDisputes(disputes) {
+            const container = document.getElementById('disputesList');
+            
+            if (disputes.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px; color: #666;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">📋</div>
+                        <p>Không có khiếu nại nào</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = disputes.map(dispute => {
+                const priority = getPriority(dispute);
+                const transaction = App.Transaction.getById(dispute.transactionId);
+                
+                return `
+                    <div class="dispute-card ${priority}" onclick="viewDispute('${dispute.id}')">
+                        <div class="dispute-header">
+                            <div class="dispute-id">#${dispute.id}</div>
+                            <div class="dispute-status ${dispute.status}">
+                                ${getStatusText(dispute.status)}
+                            </div>
+                        </div>
+                        <div class="dispute-body">
+                            <div class="dispute-type">${getTypeText(dispute.type)}</div>
+                            <h4 style="margin: 8px 0;">${dispute.title}</h4>
+                            
+                            <div class="dispute-info">
+                                <div>
+                                    <strong>Giao dịch:</strong> #${dispute.transactionId}<br>
+                                    <strong>Người mua:</strong> ${dispute.buyerName}<br>
+                                    <strong>Người bán:</strong> ${dispute.sellerName}
+                                </div>
+                                <div>
+                                    <strong>Sản phẩm:</strong> ${transaction?.productName || 'N/A'}<br>
+                                    <strong>Giá trị:</strong> ${transaction ? App.Utils.formatCurrency(transaction.amount) : 'N/A'}<br>
+                                    <strong>Yêu cầu:</strong> ${getResolutionText(dispute.resolution)}
+                                </div>
+                            </div>
+                            
+                            <div class="dispute-description">
+                                ${dispute.description}
+                            </div>
+                            
+                            ${dispute.evidence && dispute.evidence.length > 0 ? `
+                                <div class="evidence-list">
+                                    ${dispute.evidence.map(evidence => `
+                                        <a href="#" class="evidence-item" onclick="event.stopPropagation(); viewEvidence('${evidence}')">
+                                            📎 ${evidence}
+                                        </a>
+                                    `).join('')}
+                                </div>
+                            ` : ''}
+                            
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px;">
+                                <div style="font-size: 12px; color: #999;">
+                                    Tạo: ${App.Utils.formatDate(dispute.createdAt)}
+                                </div>
+                                <div style="font-size: 12px; color: #999;">
+                                    Cập nhật: ${App.Utils.formatDate(dispute.updatedAt)}
+                                </div>
+                            </div>
+                            
+                            <div class="admin-actions">
+                                ${renderAdminActions(dispute)}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
+        }
+
+        function renderAdminActions(dispute) {
+            if (dispute.status === 'pending') {
+                return `
+                    <button class="btn btn-primary" onclick="event.stopPropagation(); startInvestigation('${dispute.id}')" style="padding: 8px 16px; font-size: 14px;">
+                        🔍 Bắt đầu xử lý
+                    </button>
+                    <button class="btn btn-danger" onclick="event.stopPropagation(); rejectDispute('${dispute.id}')" style="padding: 8px 16px; font-size: 14px;">
+                        ❌ Từ chối
+                    </button>
+                `;
+            } else if (dispute.status === 'investigating') {
+                return `
+                    <button class="btn btn-success" onclick="event.stopPropagation(); resolveDispute('${dispute.id}', 'buyer')" style="padding: 8px 16px; font-size: 14px;">
+                        ✅ Buyer thắng
+                    </button>
+                    <button class="btn btn-warning" onclick="event.stopPropagation(); resolveDispute('${dispute.id}', 'seller')" style="padding: 8px 16px; font-size: 14px;">
+                        ✅ Seller thắng
+                    </button>
+                `;
+            } else {
+                return `
+                    <span style="font-size: 12px; color: #666;">
+                        ${dispute.status === 'resolved' ? '✅ Đã giải quyết' : '❌ Đã từ chối'}
+                    </span>
+                `;
+            }
+        }
+
+        function getPriority(dispute) {
+            const transaction = App.Transaction.getById(dispute.transactionId);
+            if (!transaction) return 'priority-low';
+            
+            if (transaction.amount >= 50000000) return 'priority-high';
+            if (transaction.amount >= 20000000) return 'priority-medium';
+            return 'priority-low';
+        }
+
+        function getStatusText(status) {
+            const statusTexts = {
+                'pending': 'Chờ xử lý',
+                'investigating': 'Đang xử lý',
+                'resolved': 'Đã giải quyết',
+                'rejected': 'Đã từ chối'
+            };
+            return statusTexts[status] || status;
+        }
+
+        function getTypeText(type) {
+            const typeTexts = {
+                'not_received': 'Chưa nhận được hàng',
+                'wrong_item': 'Sai sản phẩm',
+                'damaged': 'Hàng bị hỏng',
+                'fake': 'Hàng giả/nhái',
+                'other': 'Khác'
+            };
+            return typeTexts[type] || type;
+        }
+
+        function getResolutionText(resolution) {
+            const resolutionTexts = {
+                'refund': 'Hoàn tiền',
+                'exchange': 'Đổi hàng',
+                'partial_refund': 'Hoàn một phần',
+                'other': 'Khác'
+            };
+            return resolutionTexts[resolution] || resolution;
+        }
+
+        function filterDisputes(filter) {
+            currentFilter = filter;
+            
+            let filteredDisputes = allDisputes;
+            if (filter !== 'all') {
+                filteredDisputes = allDisputes.filter(d => d.status === filter);
+            }
+            
+            renderDisputes(filteredDisputes);
+            document.getElementById('statusFilter').value = filter;
+        }
+
+        function viewDispute(disputeId) {
+            window.location.href = `dispute-detail.html?id=${disputeId}`;
+        }
+
+        function viewEvidence(evidence) {
+            alert(`Xem bằng chứng: ${evidence}\n\nTính năng này sẽ được phát triển để hiển thị hình ảnh/video.`);
+        }
+
+        function startInvestigation(disputeId) {
+            if (confirm('Bắt đầu xử lý khiếu nại này?')) {
+                App.Dispute.update(disputeId, { status: 'investigating' });
+                loadDisputes();
+                alert('Đã bắt đầu xử lý khiếu nại.');
+            }
+        }
+
+        function rejectDispute(disputeId) {
+            const reason = prompt('Lý do từ chối khiếu nại:');
+            if (reason) {
+                App.Dispute.update(disputeId, { 
+                    status: 'rejected',
+                    adminResponse: reason
+                });
+                loadDisputes();
+                alert('Đã từ chối khiếu nại.');
+            }
+        }
+
+        function resolveDispute(disputeId, winner) {
+            const dispute = App.Dispute.getById(disputeId);
+            const winnerText = winner === 'buyer' ? 'Người mua' : 'Người bán';
+            
+            if (confirm(`Xác nhận ${winnerText} thắng kiện?\n\nHành động này không thể hoàn tác.`)) {
+                const response = prompt('Ghi chú kết quả phân xử:');
+                if (response) {
+                    App.Dispute.update(disputeId, { 
+                        status: 'resolved',
+                        winner: winner,
+                        adminResponse: response
+                    });
+                    
+                    // Update transaction status
+                    if (winner === 'buyer') {
+                        App.Transaction.update(dispute.transactionId, { status: 'REFUNDED' });
+                    } else {
+                        App.Transaction.update(dispute.transactionId, { status: 'COMPLETED' });
+                    }
+                    
+                    loadDisputes();
+                    alert(`Đã phân xử cho ${winnerText} thắng kiện.`);
+                }
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDisputes();
+        });
+    </script>
+</body>
+</html>

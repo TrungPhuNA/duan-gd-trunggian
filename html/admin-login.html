@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - SafeTrade</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .admin-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            padding: 20px;
+        }
+        
+        .admin-card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .admin-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        
+        .admin-logo {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        
+        .admin-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #dc3545;
+            margin-bottom: 8px;
+        }
+        
+        .admin-subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        
+        .warning-text {
+            color: #856404;
+            font-size: 14px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <div class="admin-card">
+            <div class="admin-header">
+                <div class="admin-logo">🛡️</div>
+                <div class="admin-title">SafeTrade Admin</div>
+                <div class="admin-subtitle">Hệ thống quản trị</div>
+            </div>
+            
+            <div class="warning-box">
+                <div class="warning-text">
+                    ⚠️ Khu vực dành riêng cho quản trị viên<br>
+                    Chỉ những người có thẩm quyền mới được truy cập
+                </div>
+            </div>
+            
+            <form id="adminLoginForm">
+                <div class="form-group">
+                    <label class="form-label">Tên đăng nhập</label>
+                    <input type="text" class="form-control" id="adminUsername" placeholder="Nhập tên đăng nhập" required>
+                    <div class="error-message" id="adminUsernameError"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Mật khẩu</label>
+                    <input type="password" class="form-control" id="adminPassword" placeholder="Nhập mật khẩu" required>
+                    <div class="error-message" id="adminPasswordError"></div>
+                </div>
+                
+                <button type="submit" class="btn btn-danger btn-full" style="background: #dc3545;">
+                    🔐 Đăng nhập Admin
+                </button>
+            </form>
+            
+            <div style="text-align: center; margin-top: 24px;">
+                <a href="index.html" style="color: #dc3545; text-decoration: none; font-size: 14px;">
+                    ← Quay lại trang chủ
+                </a>
+            </div>
+            
+            <div style="background: #e6f3ff; padding: 16px; border-radius: 8px; margin-top: 24px;">
+                <div style="font-size: 14px; color: #0056b3; text-align: center;">
+                    <strong>🚀 Demo Admin:</strong><br>
+                    Username: <code>admin</code><br>
+                    Password: <code>admin123</code>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        // Admin login form handler
+        document.getElementById('adminLoginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('adminUsername').value.trim();
+            const password = document.getElementById('adminPassword').value.trim();
+            
+            // Clear previous errors
+            document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+            document.querySelectorAll('.form-control').forEach(el => el.classList.remove('error'));
+            
+            // Validate
+            let hasError = false;
+            
+            if (!username) {
+                showFieldError('adminUsername', 'Vui lòng nhập tên đăng nhập');
+                hasError = true;
+            }
+            
+            if (!password) {
+                showFieldError('adminPassword', 'Vui lòng nhập mật khẩu');
+                hasError = true;
+            }
+            
+            if (hasError) return;
+            
+            // Check credentials (demo)
+            if (username === 'admin' && password === 'admin123') {
+                // Create admin user
+                const adminUser = {
+                    id: 'admin1',
+                    name: 'Administrator',
+                    username: 'admin',
+                    role: 'admin'
+                };
+                
+                // Login admin
+                App.Storage.set('user', adminUser);
+                
+                alert('Đăng nhập admin thành công!');
+                window.location.href = 'admin-disputes.html';
+            } else {
+                showFieldError('adminPassword', 'Tên đăng nhập hoặc mật khẩu không đúng');
+            }
+        });
+        
+        function showFieldError(fieldId, message) {
+            const field = document.getElementById(fieldId);
+            const errorElement = document.getElementById(fieldId + 'Error');
+            
+            field.classList.add('error');
+            errorElement.textContent = message;
+        }
+        
+        // Auto redirect if admin is already logged in
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = App.User.getCurrentUser();
+            if (user && user.role === 'admin') {
+                window.location.href = 'admin-disputes.html';
+            }
+        });
+    </script>
+</body>
+</html>

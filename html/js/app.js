@@ -395,6 +395,87 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// Dispute Management
+const Dispute = {
+    initializeMockData: () => {
+        const existingDisputes = Storage.get('disputes');
+        if (!existingDisputes || existingDisputes.length === 0) {
+            const mockDisputes = [
+                {
+                    id: 'DSP001',
+                    transactionId: 'TXN002',
+                    buyerId: 'buyer1',
+                    buyerName: 'Nguyễn Văn A',
+                    sellerId: 'seller2',
+                    sellerName: 'Lê Văn C',
+                    type: 'damaged',
+                    title: 'Sản phẩm bị hỏng',
+                    description: 'MacBook nhận được có màn hình bị vỡ, không thể sử dụng được',
+                    resolution: 'refund',
+                    status: 'pending',
+                    evidence: ['evidence1.jpg', 'evidence2.jpg'],
+                    adminResponse: null,
+                    createdAt: new Date('2024-01-16T10:30:00'),
+                    updatedAt: new Date('2024-01-16T10:30:00')
+                }
+            ];
+            Storage.set('disputes', mockDisputes);
+        }
+    },
+
+    getAll: () => {
+        Dispute.initializeMockData();
+        return Storage.get('disputes') || [];
+    },
+
+    getById: (id) => {
+        const disputes = Dispute.getAll();
+        return disputes.find(d => d.id === id);
+    },
+
+    getByTransaction: (transactionId) => {
+        const disputes = Dispute.getAll();
+        return disputes.find(d => d.transactionId === transactionId);
+    },
+
+    getByUser: (userId, role) => {
+        const disputes = Dispute.getAll();
+        return disputes.filter(d =>
+            role === 'buyer' ? d.buyerId === userId : d.sellerId === userId
+        );
+    },
+
+    create: (disputeData) => {
+        const disputes = Dispute.getAll();
+        const newDispute = {
+            id: 'DSP' + Date.now().toString(36).toUpperCase(),
+            ...disputeData,
+            status: 'pending',
+            adminResponse: null,
+            createdAt: new Date(),
+            updatedAt: new Date()
+        };
+        disputes.push(newDispute);
+        Storage.set('disputes', disputes);
+        return newDispute;
+    },
+
+    update: (id, updates) => {
+        const disputes = Dispute.getAll();
+        const index = disputes.findIndex(d => d.id === id);
+        if (index !== -1) {
+            disputes[index] = {
+                ...disputes[index],
+                ...updates,
+                updatedAt: new Date()
+            };
+            Storage.set('disputes', disputes);
+            return disputes[index];
+        }
+        return null;
+    }
+};
+
 // Export for use in other files
 window.App = {
     Utils,
@@ -402,6 +483,7 @@ window.App = {
     User,
     Transaction,
     Room,
+    Dispute,
     Navigation,
     Validation,
     CONFIG: APP_CONFIG
